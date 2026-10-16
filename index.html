@@ -1,0 +1,3563 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MODO RA: ESCANEO DE EDIFICACIONES Y PREDIO - SENA CBC</title>
+  <style>
+    /* ==========================================================================
+       ESTILOS NATIVOS 100% AUTÓNOMOS (CERO DEPENDENCIAS EXTERNAS)
+       ========================================================================== */
+    :root {
+      --bg-dark: #030e14;
+      --hud-cyan: #00f0ff;
+      --hud-teal: #00ff9d;
+      --hud-orange: #ff9100;
+      --hud-aqua: #00e5ff;
+      --hud-river: #00b4d8;
+      --hud-purple: #b388ff;
+      --hud-white: #e2e8f0;
+      --panel-bg: rgba(4, 19, 28, 0.88);
+      --panel-border: rgba(0, 240, 255, 0.42);
+      --font-main: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      color: var(--hud-white);
+      font-family: var(--font-main);
+      touch-action: none;
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+      max-width: 24px;
+      max-height: 24px;
+      flex-shrink: 0;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    #appWrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #arCameraVideo {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      display: none;
+    }
+
+    #arCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      cursor: grab;
+    }
+
+    #arCanvas:active {
+      cursor: grabbing;
+    }
+
+    .hud-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at center, transparent 54%, rgba(2, 10, 16, 0.82) 100%),
+        repeating-linear-gradient(
+          0deg,
+          rgba(0, 240, 255, 0.022) 0px,
+          rgba(0, 240, 255, 0.022) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+    }
+
+    .hud-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 22px;
+      background: linear-gradient(180deg, rgba(2, 14, 22, 0.94) 0%, rgba(2, 14, 22, 0) 100%);
+      pointer-events: none;
+    }
+
+    .hud-title-box {
+      text-align: center;
+      margin: 0 auto;
+      pointer-events: auto;
+    }
+
+    .hud-title {
+      font-size: clamp(13px, 2vw, 20px);
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #d6fbff;
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.85), 0 0 24px rgba(0, 240, 255, 0.4);
+      text-transform: uppercase;
+    }
+
+    .hud-title-glow {
+      width: 260px;
+      height: 3px;
+      margin: 3px auto 0;
+      background: radial-gradient(circle, #00f0ff 0%, transparent 75%);
+      box-shadow: 0 0 14px #00f0ff;
+    }
+
+    .corner-bracket {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      z-index: 8;
+      pointer-events: none;
+      border-color: rgba(165, 243, 252, 0.85);
+      border-style: solid;
+      border-width: 0;
+    }
+    .corner-tl { top: 12px; left: 14px; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 6px; }
+    .corner-tr { top: 12px; right: 14px; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 6px; }
+    .corner-bl { bottom: 12px; left: 14px; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 6px; }
+    .corner-br { bottom: 12px; right: 14px; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 6px; }
+
+    .hud-battery {
+      position: absolute;
+      top: 22px;
+      right: 30px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #a5f3fc;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      pointer-events: none;
+    }
+    .battery-body {
+      width: 34px;
+      height: 16px;
+      border: 2px solid #a5f3fc;
+      border-radius: 3px;
+      padding: 2px;
+      position: relative;
+    }
+    .battery-body::after {
+      content: '';
+      position: absolute;
+      right: -5px;
+      top: 3px;
+      width: 3px;
+      height: 6px;
+      background: #a5f3fc;
+      border-radius: 0 2px 2px 0;
+    }
+    .battery-fill {
+      width: 88%;
+      height: 100%;
+      background: linear-gradient(90deg, #00ff9d, #00f0ff);
+    }
+
+    .top-controls-stack {
+      position: absolute;
+      top: 46px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 95vw;
+      max-width: 1120px;
+      pointer-events: none;
+    }
+
+    .top-toolbar, .sector-pills-bar {
+      pointer-events: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      padding: 5px 10px;
+      background: rgba(4, 19, 28, 0.88);
+      border: 1px solid rgba(0, 240, 255, 0.38);
+      border-radius: 9px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.65);
+    }
+
+    .sector-pills-bar {
+      background: rgba(3, 15, 22, 0.84);
+      border-color: rgba(0, 255, 157, 0.35);
+      padding: 4px 8px;
+    }
+
+    .hud-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: #d6fbff;
+      background: rgba(0, 240, 255, 0.11);
+      border: 1px solid rgba(0, 240, 255, 0.42);
+      cursor: pointer;
+      transition: all 0.16s ease;
+      white-space: nowrap;
+    }
+
+    .hud-btn:hover {
+      background: rgba(0, 240, 255, 0.26);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .hud-btn.active {
+      background: #00f0ff;
+      color: #03131a;
+      border-color: #ffffff;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+    }
+
+    .hud-btn.btn-green {
+      background: rgba(0, 255, 157, 0.14);
+      border-color: rgba(0, 255, 157, 0.55);
+      color: #6ee7b7;
+    }
+
+    .hud-btn.btn-green.active,
+    .hud-btn.btn-green:hover {
+      background: #00ff9d;
+      color: #022014;
+      box-shadow: 0 0 12px rgba(0, 255, 157, 0.7);
+    }
+
+    .hud-btn.btn-orange {
+      background: rgba(255, 145, 0, 0.15);
+      border-color: rgba(255, 145, 0, 0.6);
+      color: #fdba74;
+    }
+
+    .hud-btn.btn-orange.active,
+    .hud-btn.btn-orange:hover {
+      background: #ff9100;
+      color: #1f0e00;
+    }
+
+    .sector-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #cbd5e1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+
+    .sector-pill:hover {
+      color: #ffffff;
+      border-color: var(--pill-color, #00f0ff);
+      background: rgba(0, 240, 255, 0.15);
+    }
+
+    .sector-pill.active {
+      background: var(--pill-color, #00f0ff);
+      color: #02131a;
+      border-color: #ffffff;
+      box-shadow: 0 0 12px var(--pill-color, #00f0ff);
+    }
+
+    .sector-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--pill-color, #00f0ff);
+      display: inline-block;
+    }
+
+    .sector-pill.active .sector-dot {
+      background: #02131a;
+    }
+
+    .left-scale-bar {
+      position: absolute;
+      left: 20px;
+      top: 44%;
+      transform: translateY(-50%);
+      z-index: 8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      pointer-events: auto;
+    }
+
+    .scale-track {
+      width: 10px;
+      height: 165px;
+      border: 1.5px solid rgba(165, 243, 252, 0.7);
+      border-radius: 4px;
+      padding: 2px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: rgba(3, 18, 28, 0.65);
+    }
+
+    .scale-fill {
+      width: 100%;
+      height: 55%;
+      background: linear-gradient(180deg, #00f0ff, #00ff9d);
+      border-radius: 2px;
+      transition: height 0.15s ease;
+    }
+
+    .right-ruler {
+      position: absolute;
+      right: 20px;
+      top: 47%;
+      transform: translateY(-50%);
+      z-index: 8;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      font-family: var(--font-mono);
+      color: rgba(207, 250, 254, 0.85);
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    .ruler-ticks {
+      border-right: 2px solid rgba(165, 243, 252, 0.75);
+      padding-right: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      align-items: flex-end;
+    }
+
+    .ruler-tick {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ruler-tick::after {
+      content: '';
+      width: 10px;
+      height: 1.5px;
+      background: rgba(165, 243, 252, 0.8);
+    }
+
+    .gps-readout {
+      margin-top: 10px;
+      text-align: right;
+      font-size: 10px;
+      line-height: 1.35;
+      color: #a5f3fc;
+      text-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+    }
+
+    .bottom-compass {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .compass-bar {
+      width: clamp(200px, 32vw, 350px);
+      height: 13px;
+      border-bottom: 2px solid rgba(165, 243, 252, 0.85);
+      border-left: 2px solid rgba(165, 243, 252, 0.85);
+      border-right: 2px solid rgba(165, 243, 252, 0.85);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 0 10px;
+    }
+
+    .compass-bar span {
+      width: 1.5px;
+      height: 6px;
+      background: rgba(165, 243, 252, 0.75);
+    }
+
+    .compass-bar span.major {
+      height: 11px;
+      background: #00f0ff;
+    }
+
+    .hud-badge-br {
+      position: absolute;
+      bottom: 22px;
+      right: 28px;
+      z-index: 10;
+      border: 1.5px solid #a5f3fc;
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: #d6fbff;
+      background: rgba(4, 22, 34, 0.78);
+      letter-spacing: 1px;
+    }
+
+    #labelsLayer {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .building-callout {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -100%);
+      pointer-events: auto;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 7px;
+      background: rgba(5, 22, 32, 0.88);
+      border: 1.5px solid var(--card-color, #00ff9d);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.78), 0 0 12px rgba(0, 240, 255, 0.18);
+      backdrop-filter: blur(5px);
+      transition: box-shadow 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+      max-width: 255px;
+    }
+
+    .building-callout:hover,
+    .building-callout.is-active {
+      background: rgba(8, 36, 50, 0.96);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.92), 0 0 20px var(--card-color, #00ff9d);
+      z-index: 30 !important;
+    }
+
+    .callout-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-color, #00ff9d);
+      color: var(--card-color, #00ff9d);
+      flex-shrink: 0;
+    }
+
+    .callout-body {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .callout-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .callout-meta {
+      font-size: 10px;
+      color: #cbd5e1;
+      line-height: 1.28;
+      margin-top: 3px;
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      padding-top: 3px;
+      display: none;
+    }
+
+    .building-callout.is-active .callout-meta,
+    .building-callout.always-details .callout-meta {
+      display: block;
+    }
+
+    .callout-thumb-wrap {
+      display: none;
+      margin-top: 5px;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      position: relative;
+      width: 100%;
+      height: 68px;
+      background: #021017;
+    }
+
+    .building-callout.is-active .callout-thumb-wrap {
+      display: block;
+    }
+
+    .callout-thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .callout-desc-preview {
+      display: none;
+      font-size: 9.8px;
+      color: #a5f3fc;
+      margin-top: 4px;
+      line-height: 1.25;
+      max-width: 210px;
+    }
+
+    .building-callout.is-active .callout-desc-preview {
+      display: block;
+    }
+
+    .callout-edit-btn {
+      margin-left: 3px;
+      padding: 4px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #a5f3fc;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .callout-edit-btn:hover {
+      background: var(--card-color, #00f0ff);
+      color: #021017;
+    }
+
+    /* VISOR HOLOGRÁFICO EN TIEMPO REAL AL PASAR LA CÁMARA O MIRA (+) POR EL LUGAR */
+    .reticle-photo-hud {
+      position: absolute;
+      top: 50%;
+      left: calc(50% + 84px);
+      transform: translateY(-50%);
+      z-index: 14;
+      width: 250px;
+      background: rgba(3, 18, 27, 0.92);
+      border: 1.5px solid var(--focus-color, #ff9100);
+      border-radius: 10px;
+      padding: 8px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.85), 0 0 18px rgba(0, 240, 255, 0.22);
+      backdrop-filter: blur(8px);
+      pointer-events: auto;
+      transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .reticle-photo-hud::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 50%;
+      width: 20px;
+      height: 2px;
+      background: var(--focus-color, #ff9100);
+      box-shadow: 0 0 8px var(--focus-color, #ff9100);
+    }
+
+    .reticle-hud-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-bottom: 5px;
+    }
+
+    .reticle-lock-tag {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      font-weight: 700;
+      color: #02131a;
+      background: var(--focus-color, #ff9100);
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .reticle-photo-frame {
+      position: relative;
+      width: 100%;
+      height: 118px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #020c12;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .reticle-photo-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(2, 14, 22, 0.82);
+      border: 1px solid rgba(0, 240, 255, 0.6);
+      color: #ffffff;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 3;
+    }
+
+    .photo-nav-btn:hover {
+      background: #00f0ff;
+      color: #021017;
+    }
+
+    .photo-nav-prev { left: 5px; }
+    .photo-nav-next { right: 5px; }
+
+    .photo-counter-pill {
+      position: absolute;
+      bottom: 5px;
+      right: 6px;
+      background: rgba(2, 12, 18, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #e2e8f0;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      padding: 1px 6px;
+      border-radius: 999px;
+    }
+
+    .reticle-hud-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 6px;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    .reticle-hud-desc {
+      font-size: 10.2px;
+      color: #cbd5e1;
+      line-height: 1.32;
+      margin-top: 3px;
+      max-height: 42px;
+      overflow-y: auto;
+    }
+
+    .reticle-hud-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-top: 7px;
+    }
+
+    .modal-photos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .modal-photo-item {
+      position: relative;
+      height: 78px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1.5px solid rgba(0, 240, 255, 0.35);
+      background: #020c12;
+    }
+
+    .modal-photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .modal-photo-del {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background: rgba(220, 38, 38, 0.9);
+      border: 1px solid #ffffff;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ar-shutter-bar {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(3, 20, 30, 0.92);
+      border: 1.5px solid #00ff9d;
+      box-shadow: 0 0 22px rgba(0, 255, 157, 0.45);
+    }
+
+    .ar-shutter-bar.active {
+      display: flex;
+    }
+
+    .bottom-left-cluster {
+      position: absolute;
+      bottom: 48px;
+      left: 22px;
+      z-index: 15;
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .minimap-box {
+      width: 205px;
+      background: rgba(4, 19, 28, 0.9);
+      border: 1.5px solid rgba(0, 240, 255, 0.5);
+      border-radius: 10px;
+      padding: 6px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.75);
+    }
+
+    .minimap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: #a5f3fc;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    #minimapCanvas {
+      width: 100%;
+      height: 128px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      cursor: crosshair;
+      display: block;
+      background: #071b16;
+    }
+
+    .dpad-container {
+      display: grid;
+      grid-template-columns: repeat(3, 32px);
+      grid-template-rows: repeat(3, 32px);
+      gap: 3px;
+      padding: 5px;
+      background: rgba(4, 20, 30, 0.86);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      border-radius: 10px;
+      backdrop-filter: blur(6px);
+    }
+
+    .dpad-btn {
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      border-radius: 6px;
+      color: #a5f3fc;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+
+    .dpad-btn:hover,
+    .dpad-btn:active {
+      background: #00f0ff;
+      color: #03151f;
+    }
+
+    .scanner-inspector {
+      position: absolute;
+      bottom: 52px;
+      right: 24px;
+      z-index: 15;
+      width: clamp(275px, 29vw, 360px);
+      background: rgba(4, 20, 30, 0.92);
+      border: 1.5px solid var(--active-color, #00ff9d);
+      border-left-width: 5px;
+      border-radius: 10px;
+      padding: 11px 13px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.78);
+    }
+
+    .inspector-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 5px;
+    }
+
+    .inspector-badge {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(0, 255, 157, 0.14);
+      color: var(--active-color, #00ff9d);
+      border: 1px solid var(--active-color, #00ff9d);
+    }
+
+    .inspector-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .inspector-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 11px;
+    }
+
+    .stat-box {
+      background: rgba(0, 0, 0, 0.35);
+      padding: 4px 6px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat-label {
+      font-size: 8.5px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      display: block;
+    }
+
+    .stat-val {
+      font-weight: 700;
+      color: #e2e8f0;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(2, 10, 16, 0.84);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 560px;
+      max-height: 88vh;
+      background: #061c29;
+      border: 1.5px solid #00f0ff;
+      border-radius: 12px;
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 13px 18px;
+      background: rgba(0, 240, 255, 0.1);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h2 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #00f0ff;
+    }
+
+    .modal-body {
+      padding: 15px 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .form-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: #031119;
+      border: 1px solid rgba(0, 240, 255, 0.45);
+      color: #ffffff;
+      font-size: 12.5px;
+      outline: none;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: #00ff9d;
+      box-shadow: 0 0 8px rgba(0, 255, 157, 0.4);
+    }
+
+    .color-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.15s;
+    }
+
+    .color-swatch.selected {
+      border-color: #ffffff;
+      transform: scale(1.14);
+    }
+
+    .modal-footer {
+      padding: 11px 18px;
+      background: #04131c;
+      border-top: 1px solid rgba(0, 240, 255, 0.25);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .buildings-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 11px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-left: 4px solid var(--item-color, #00ff9d);
+      border-radius: 7px;
+    }
+
+    #hudToast {
+      position: fixed;
+      top: 132px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
+      background: rgba(3, 22, 32, 0.96);
+      border: 1.5px solid #00ff9d;
+      color: #6ee7b7;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.75);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #hudToast.visible {
+      opacity: 1;
+    }
+
+    @media (max-width: 820px) {
+      .minimap-box {
+        width: 145px;
+      }
+      #minimapCanvas {
+        height: 92px;
+      }
+      .scanner-inspector {
+        width: 255px;
+        right: 12px;
+        bottom: 46px;
+      }
+      .bottom-left-cluster {
+        left: 12px;
+        bottom: 46px;
+      }
+      .right-ruler, .left-scale-bar {
+        display: none;
+      }
+      .reticle-photo-hud {
+        top: 128px;
+        left: auto;
+        right: 14px;
+        transform: none;
+        width: 220px;
+      }
+      .reticle-photo-hud::before {
+        display: none;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .dpad-container {
+        display: none;
+      }
+      .scanner-inspector {
+        left: 162px;
+        width: auto;
+        padding: 8px 10px;
+      }
+      .building-callout {
+        padding: 4px 7px;
+        max-width: 175px;
+      }
+      .callout-title {
+        font-size: 9.5px;
+      }
+      .reticle-photo-hud {
+        width: 195px;
+        padding: 6px;
+      }
+      .reticle-photo-frame {
+        height: 88px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="appWrapper">
+    <!-- Video en vivo para Modo Cámara RA en teléfonos -->
+    <video id="arCameraVideo" autoplay playsinline muted></video>
+
+    <!-- Lienzo principal 2.5D / 3D del predio completo -->
+    <canvas id="arCanvas"></canvas>
+
+    <!-- Capa de etiquetas flotantes -->
+    <div id="labelsLayer"></div>
+
+    <!-- VISOR HOLOGRÁFICO AUTOMÁTICO EN TIEMPO REAL AL PASAR LA CÁMARA O MIRA (+) -->
+    <aside id="reticlePhotoHud" class="reticle-photo-hud">
+      <div class="reticle-hud-top">
+        <span id="reticleLockTag" class="reticle-lock-tag">ENFOCADO EN MIRA</span>
+        <button id="btnToggleReticleHud" class="hud-btn" style="padding:1px 6px; font-size:10px;" title="Minimizar/Expandir visor de foto">_</button>
+      </div>
+      <div id="reticleHudBody">
+        <div class="reticle-photo-frame">
+          <button type="button" id="btnPrevPhotoHud" class="photo-nav-btn photo-nav-prev" title="Foto anterior">◀</button>
+          <img id="reticleFocusImg" src="" alt="Vista de la edificación" />
+          <button type="button" id="btnNextPhotoHud" class="photo-nav-btn photo-nav-next" title="Siguiente foto">▶</button>
+          <span id="reticlePhotoCounter" class="photo-counter-pill">1 / 1</span>
+        </div>
+        <div id="reticleFocusTitle" class="reticle-hud-title">TALLERES DE MAQUINARIA</div>
+        <div id="reticleFocusDesc" class="reticle-hud-desc">
+          Talleres de mecanización agrícola, mantenimiento de tractores, motores y soldadura.
+        </div>
+        <div class="reticle-hud-actions">
+          <button type="button" id="btnQuickUploadPhoto" class="hud-btn btn-green" style="justify-content:center; padding:4px 6px; font-size:10.5px;">
+            + Subir Foto
+          </button>
+          <button type="button" id="btnQuickEditDesc" class="hud-btn" style="justify-content:center; padding:4px 6px; font-size:10.5px;">
+            ✎ Descripción
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Barra flotante de captura directa cuando la Cámara RA está encendida -->
+    <div id="arShutterBar" class="ar-shutter-bar">
+      <span style="font-size:11px; color:#a5f3fc; font-weight:600;">Cámara RA Activa:</span>
+      <button type="button" id="btnSnapARPhoto" class="hud-btn btn-green">
+        📸 Capturar Foto para este Lugar
+      </button>
+      <button type="button" id="btnHelpAR" class="hud-btn" style="padding:4px 8px;">
+        ¿Qué hace Cámara RA?
+      </button>
+    </div>
+
+    <!-- Input oculto para subir fotos rápidamente desde el teléfono o PC -->
+    <input id="quickPhotoInput" type="file" accept="image/*" style="display:none;" />
+
+    <!-- Viñeta HUD -->
+    <div class="hud-vignette"></div>
+
+    <!-- Corchetes de las 4 esquinas -->
+    <div class="corner-bracket corner-tl"></div>
+    <div class="corner-bracket corner-tr"></div>
+    <div class="corner-bracket corner-bl"></div>
+    <div class="corner-bracket corner-br"></div>
+
+    <!-- Título superior -->
+    <header class="hud-header">
+      <div class="hud-title-box">
+        <h1 class="hud-title">MODO RA: ESCANEO DE EDIFICACIONES - SENA CBC</h1>
+        <div class="hud-title-glow"></div>
+      </div>
+    </header>
+
+    <div class="hud-battery">
+      <div class="battery-body"><div class="battery-fill"></div></div>
+    </div>
+
+    <!-- Controles principales + Selector rápido de los 6 sectores del SENA CBC -->
+    <div class="top-controls-stack">
+      <nav class="top-toolbar">
+        <button id="btnCameraAR" class="hud-btn btn-green" title="Activar cámara trasera del teléfono para Realidad Aumentada">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <span id="cameraBtnLabel">Activar Cámara RA</span>
+        </button>
+
+        <button id="btnToggle3D" class="hud-btn active" title="Alternar inclinación 3D o vista cenital">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          <span id="viewTiltLabel">Perspectiva 3D</span>
+        </button>
+
+        <button id="btnTour" class="hud-btn" title="Recorrido automático por todas las instalaciones del SENA CBC">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span id="tourBtnLabel">Recorrido Guiado (22 Zonas)</span>
+        </button>
+
+        <button id="btnQuickAdd" class="hud-btn btn-green" title="Crear nueva edificación o módulo en el punto actual">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>+ Agregar Edificación</span>
+        </button>
+
+        <button id="btnMoveBuildings" class="hud-btn btn-orange" title="Arrastrar edificaciones en el mapa">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="5 9 2 12 5 15"></polyline>
+            <polyline points="9 5 12 2 15 5"></polyline>
+            <polyline points="15 19 12 22 9 19"></polyline>
+            <polyline points="19 9 22 12 19 15"></polyline>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <line x1="12" y1="2" x2="12" y2="22"></line>
+          </svg>
+          <span id="moveBtnLabel">Mover Bloques</span>
+        </button>
+
+        <button id="btnAllNamesModal" class="hud-btn" title="Directorio completo, renombrar, exportar o importar JSON">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          <span>Directorio / Nombres</span>
+        </button>
+      </nav>
+
+      <!-- Píldoras de salto rápido entre sectores del SENA CBC (Ordenados Norte a Sur / Oeste a Este) -->
+      <div class="sector-pills-bar" id="sectorPillsBar">
+        <button class="sector-pill" data-sector="all" style="--pill-color:#00f0ff;">
+          <span class="sector-dot"></span>Todo el Predio
+        </button>
+        <button class="sector-pill active" data-sector="campus" style="--pill-color:#00ff9d;">
+          <span class="sector-dot"></span>1. Campus Central
+        </button>
+        <button class="sector-pill" data-sector="acuicultura" style="--pill-color:#00e5ff;">
+          <span class="sector-dot"></span>2. Acuicultura y Piscicultura
+        </button>
+        <button class="sector-pill" data-sector="ganaderia" style="--pill-color:#ff9100;">
+          <span class="sector-dot"></span>3. Ganadería y Especies Menores
+        </button>
+        <button class="sector-pill" data-sector="rio" style="--pill-color:#00b4d8;">
+          <span class="sector-dot"></span>4. Río Cesar y Bocatoma
+        </button>
+        <button class="sector-pill" data-sector="agroindustria" style="--pill-color:#b388ff;">
+          <span class="sector-dot"></span>5. Agroindustria y Viveros
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra lateral izquierda (Zoom) -->
+    <div class="left-scale-bar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a5f3fc" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3"></circle>
+      </svg>
+      <div class="scale-track" title="Zoom / Altitud de Escaneo">
+        <div id="zoomFillBar" class="scale-fill"></div>
+      </div>
+    </div>
+
+    <!-- Regla derecha + GPS -->
+    <div class="right-ruler">
+      <div class="ruler-ticks">
+        <div class="ruler-tick"><span>180</span></div>
+        <div class="ruler-tick"><span>160</span></div>
+        <div class="ruler-tick"><span>150</span></div>
+        <div class="ruler-tick"><span>140</span></div>
+        <div class="ruler-tick"><span>120</span></div>
+      </div>
+      <div class="gps-readout">
+        <div id="gpsLatText">GPS: 10.39880° N</div>
+        <div id="gpsLngText">-73.22970° W</div>
+        <div id="gpsSectorText" style="color:#00ff9d; font-weight:700; margin-top:2px;">SECTOR: CAMPUS CENTRAL</div>
+      </div>
+    </div>
+
+    <!-- Cluster inferior izquierdo: Minimapa Radar del Predio + Cruceta D-Pad -->
+    <div class="bottom-left-cluster">
+      <div class="minimap-box">
+        <div class="minimap-header">
+          <span>RADAR PREDIAL CBC</span>
+          <span id="minimapScaleTxt">4.2 x 3.2 KM</span>
+        </div>
+        <canvas id="minimapCanvas" width="200" height="136" title="Haz clic o arrastra en el radar para saltar a cualquier zona del SENA CBC"></canvas>
+      </div>
+
+      <div class="dpad-container" title="Recorrer el predio con flechas o teclas WASD">
+        <div></div>
+        <button class="dpad-btn" data-dir="up">▲</button>
+        <div></div>
+        <button class="dpad-btn" data-dir="left">◀</button>
+        <button class="dpad-btn" id="btnCenterTarget" title="Volver al Campus Central">┼</button>
+        <button class="dpad-btn" data-dir="right">▶</button>
+        <div></div>
+        <button class="dpad-btn" data-dir="down">▼</button>
+        <div></div>
+      </div>
+    </div>
+
+    <!-- Tarjeta inferior derecha: Inspector de la edificación/zona bajo la mira -->
+    <section id="scannerInspector" class="scanner-inspector">
+      <div class="inspector-header">
+        <span id="inspBadge" class="inspector-badge">CAMPUS CENTRAL</span>
+        <div style="display:flex; gap:5px;">
+          <button id="btnQuickAddPhotoInspector" class="hud-btn btn-green" style="padding: 3px 8px; font-size: 11px;" title="Agregar otra foto a esta edificación">
+            + Foto
+          </button>
+          <button id="btnOpenRenameCurrent" class="hud-btn" style="padding: 3px 8px; font-size: 11px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <span>Editar / Renombrar</span>
+          </button>
+        </div>
+      </div>
+      <div id="inspName" class="inspector-name">BLOQUE C - AULAS Y TALLERES</div>
+      <div id="inspDesc" style="font-size: 11px; color: #cbd5e1; line-height: 1.35; margin-top: 2px;">
+        Complejo principal de formación, aulas tecnológicas y talleres del SENA CBC.
+      </div>
+      <div class="inspector-stats">
+        <div class="stat-box">
+          <span class="stat-label">Área / Ext.</span>
+          <span id="inspArea" class="stat-val">1,420 m²</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Estado</span>
+          <span id="inspStatus" class="stat-val" style="color:#00ff9d;">Activo</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">Fotos Lugar</span>
+          <span id="inspPhotoCount" class="stat-val" style="color:#00f0ff;">1 Foto(s)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Compás horizontal inferior -->
+    <div class="bottom-compass">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a5f3fc" stroke-width="2" style="margin-bottom: 2px;">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3"></circle>
+      </svg>
+      <div class="compass-bar">
+        <span class="major"></span><span></span><span></span><span class="major"></span>
+        <span></span><span></span><span class="major"></span><span></span>
+        <span></span><span class="major"></span><span></span><span></span><span class="major"></span>
+      </div>
+    </div>
+
+    <div class="hud-badge-br">HUD</div>
+  </div>
+
+  <!-- MODAL 1: RENOMBRAR / PERSONALIZAR EDIFICACIÓN O UNIDAD PRODUCTIVA -->
+  <div id="editModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Personalizar Edificación / Zona del Predio</h2>
+        <button id="btnCloseEditModal" class="hud-btn" style="padding: 4px 8px;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Nombre de la Edificación o Zona (Visible en RA)</label>
+          <input id="inputBldName" type="text" class="form-input" placeholder="Ej: ESTANQUES DE PISCICULTURA (TILAPIA Y CACHAMA)" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Sector del Predio</label>
+            <select id="inputBldSector" class="form-select">
+              <option value="campus">1. Campus Central y Académico</option>
+              <option value="acuicultura">2. Acuicultura y Piscicultura</option>
+              <option value="ganaderia">3. Ganadería y Especies Menores</option>
+              <option value="rio">4. Río Cesar y Ronda Hídrica</option>
+              <option value="agroindustria">5. Viveros, Cultivos y Agroindustria</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Geometría 3D / Esqueleto</label>
+            <select id="inputBldRoof" class="form-select">
+              <option value="gable">Nave / Cubierta a Dos Aguas</option>
+              <option value="pyramid">Edificio Techo Piramidal</option>
+              <option value="twin">Coliseo Doble Bóveda</option>
+              <option value="court">Cancha Deportiva + LiDAR</option>
+              <option value="pond">Estanques Acuícolas Hundidos</option>
+              <option value="tanks">Tanques Circulares Biofloc</option>
+              <option value="corral">Corrales y Manga Ganadera</option>
+              <option value="greenhouse">Invernadero Túnel Arqueado</option>
+              <option value="crops">Parcelas de Cultivo / Pastoreo</option>
+              <option value="river">Estación Hídrica / Río</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Ícono de Identificación</label>
+            <select id="inputBldIcon" class="form-select">
+              <option value="book">Aulas / Formación (Libro)</option>
+              <option value="flask">Laboratorio / Biotecnología (Matraz)</option>
+              <option value="fish">Acuicultura / Piscicultura (Pez)</option>
+              <option value="cow">Ganadería / Pecuaria (Bovino)</option>
+              <option value="water">Río / Bocatoma / Agua (Onda)</option>
+              <option value="leaf">Vivero / Cultivos / Bosque (Hoja)</option>
+              <option value="gear">Taller / Agroindustria (Engranaje)</option>
+              <option value="home">Administración / Portería (Sede)</option>
+              <option value="whistle">Deportes / Cancha (Silbato)</option>
+              <option value="box">Bodega / Almacén (Caja)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado Operativo</label>
+            <select id="inputBldStatus" class="form-select">
+              <option value="Activo">Activo</option>
+              <option value="En Producción">En Producción</option>
+              <option value="En Prácticas">En Prácticas</option>
+              <option value="Monitoreo Hídrico">Monitoreo Hídrico</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Área / Caudal / Extensión</label>
+            <input id="inputBldArea" type="text" class="form-input" placeholder="Ej: 3,400 m²" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Capacidad / Producción</label>
+            <input id="inputBldCap" type="text" class="form-input" placeholder="Ej: 18 Estanques / 45,000 peces" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Descripción del Lugar (Visible al enfocar con la cámara)</label>
+          <textarea id="inputBldDesc" rows="3" class="form-input" style="resize:vertical; font-family:inherit;" placeholder="Escribe aquí qué hay dentro de esta edificación..."></textarea>
+        </div>
+
+        <!-- GESTOR DE FOTOS DEL LUGAR -->
+        <div class="form-group" style="background:rgba(0,240,255,0.05); padding:10px; border-radius:8px; border:1px solid rgba(0,240,255,0.25);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <label class="form-label" style="color:#00ff9d;">Fotos del Lugar (Se muestran al enfocar la edificación)</label>
+            <div style="display:flex; gap:6px;">
+              <button type="button" id="btnModalUploadPhoto" class="hud-btn btn-green" style="padding:4px 9px; font-size:11px;">
+                📁 Subir / Tomar Foto
+              </button>
+              <button type="button" id="btnModalCaptureAR" class="hud-btn" style="padding:4px 9px; font-size:11px;">
+                📸 Capturar de Cámara RA
+              </button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:6px; margin-top:7px;">
+            <input id="inputPhotoUrl" type="text" class="form-input" placeholder="O pega aquí la URL de una foto (https://...)" style="padding:5px 8px; font-size:11.5px;" />
+            <button type="button" id="btnAddPhotoUrl" class="hud-btn" style="padding:5px 10px;">+ Añadir URL</button>
+          </div>
+
+          <div id="modalPhotosGrid" class="modal-photos-grid"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Color Holográfico del Esqueleto 3D</label>
+          <div id="colorPresetsContainer" class="color-presets">
+            <div class="color-swatch" data-color="#00ff9d" style="background:#00ff9d;" title="Verde Formación / Bosques"></div>
+            <div class="color-swatch" data-color="#00d4ff" style="background:#00d4ff;" title="Cian Laboratorios / Admin"></div>
+            <div class="color-swatch" data-color="#00e5ff" style="background:#00e5ff;" title="Aqua Acuicultura / Biofloc"></div>
+            <div class="color-swatch" data-color="#ff9100" style="background:#ff9100;" title="Naranja Ganadería / Maquinaria"></div>
+            <div class="color-swatch" data-color="#00b4d8" style="background:#00b4d8;" title="Azul Hídrico Río / Bocatoma"></div>
+            <div class="color-swatch" data-color="#b388ff" style="background:#b388ff;" title="Violeta Viveros / Invernaderos"></div>
+            <div class="color-swatch" data-color="#e2e8f0" style="background:#e2e8f0;" title="Blanco Bodegas / Servicios"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btnDeleteBuilding" class="hud-btn btn-orange">Eliminar Bloque</button>
+        <div style="display:flex; gap:8px;">
+          <button id="btnCancelEdit" class="hud-btn">Cancelar</button>
+          <button id="btnSaveEdit" class="hud-btn btn-green">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: EXPLICACIÓN DE CÁMARA RA -->
+  <div id="arHelpModal" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h2>¿Qué hace la Cámara RA en el SENA CBC?</h2>
+        <button id="btnCloseArHelp" class="hud-btn" style="padding: 4px 8px;">✕</button>
+      </div>
+      <div class="modal-body" style="font-size:12.5px; line-height:1.5; color:#cbd5e1;">
+        <p><strong style="color:#00ff9d;">1. Superposición sobre el Mundo Real:</strong> Al activar <strong>"Activar Cámara RA"</strong>, la cámara trasera de tu teléfono se muestra en vivo y los esqueletos 3D holográficos se dibujan encima.</p>
+        <p><strong style="color:#00f0ff;">2. Escaneo Automático con Foto y Descripción:</strong> Al pasar la mira central (<strong>+</strong>) o la cámara por encima de cualquier edificación (Acuicultura, Ganadería, Campus), emerge instantáneamente la tarjeta con las fotos reales y su descripción en tiempo real.</p>
+        <p><strong style="color:#ff9100;">3. Agrega Tus Propias Fotos:</strong> Usa <strong>"+ Subir Foto"</strong> o <strong>"📸 Capturar Foto"</strong> para añadir imágenes tomadas por ti mismo.</p>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;">
+        <button id="btnOkArHelp" class="hud-btn btn-green">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: DIRECTORIO COMPLETO -->
+  <div id="allBuildingsModal" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h2>Directorio General del Predio - SENA CBC (22 Instalaciones)</h2>
+        <button id="btnCloseAllModal" class="hud-btn" style="padding: 4px 8px;">✕</button>
+      </div>
+      <div id="allBuildingsList" class="modal-body"></div>
+      <div class="modal-footer">
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button id="btnRestoreDefaults" class="hud-btn btn-orange">Restaurar Originales</button>
+          <button id="btnExportJSON" class="hud-btn">Exportar JSON</button>
+          <button id="btnImportJSON" class="hud-btn">Importar JSON</button>
+          <input id="fileImportJSON" type="file" accept=".json" style="display:none;" />
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button id="btnAddNewBuildingModal" class="hud-btn btn-green">+ Agregar Edificación</button>
+          <button id="btnDoneAllModal" class="hud-btn active">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="hudToast">Cambios aplicados</div>
+
+  <script>
+    const STORAGE_KEY = 'sena_cbc_full_estate_ar_v6';
+    const WORLD_W = 4200;
+    const WORLD_H = 3200;
+
+    // Coordenadas corregidas con orden lógico geográfico de norte a sur / oeste a este
+    const SECTORS = {
+      all:          { name: 'TODO EL PREDIO CBC',             x: 0,     y: 0,    zoom: 0.34 },
+      campus:       { name: 'SECTOR 1: CAMPUS CENTRAL',       x: 0,     y: 120,  zoom: 0.98 },
+      acuicultura:  { name: 'SECTOR 2: ACUICULTURA Y PISCICULTURA', x: 280,  y: -520, zoom: 0.82 },
+      ganaderia:    { name: 'SECTOR 3: GANADERÍA Y BOVINOS',  x: -850,  y: -380, zoom: 0.78 },
+      rio:          { name: 'SECTOR 4: RÍO CESAR Y RONDA HÍDRICA', x: 1420, y: 0,    zoom: 0.72 },
+      agroindustria:{ name: 'SECTOR 5: AGROINDUSTRIA Y VIVEROS', x: -720, y: 520,  zoom: 0.82 }
+    };
+
+    /* ==========================================================================
+       BASE DE DATOS 100% CORREGIDA (ORDEN LÓGICO GEOGRÁFICO)
+       - Campus Central (Centro)
+       - Acuicultura y Piscicultura (Al norte / este de campus)
+       - Ganadería y Especies Menores (Al oeste de acuicultura/campus)
+       - Río Cesar y Ronda Hídrica (Al extremo este)
+       - Agroindustria y Viveros (Al sur)
+       ========================================================================== */
+    const INITIAL_BUILDINGS = [
+      // --- SECTOR 1: CAMPUS CENTRAL Y ACADÉMICO ---
+      {
+        id: 'bloque-b',
+        sector: 'campus',
+        name: 'BLOQUE B - LABORATORIOS BIOTECNOLÓGICOS',
+        icon: 'flask',
+        color: '#00d4ff',
+        area: '980 m²',
+        status: 'Activo',
+        capacity: '120 personas',
+        desc: 'Laboratorios de microbiología, biotecnología vegetal, genética, análisis de suelos y aguas.',
+        x: -245, y: -45, w: 122, d: 52, h: 38, angle: -0.05, roof: 'gable',
+        labelOffset: { dx: 10, dy: -82 }, alwaysDetails: false
+      },
+      {
+        id: 'bloque-a',
+        sector: 'campus',
+        name: 'BLOQUE A - ADMINISTRACIÓN',
+        icon: 'home',
+        color: '#00d4ff',
+        area: '740 m²',
+        status: 'Activo',
+        capacity: '85 personas',
+        desc: 'Subdirección del Centro Biotecnológico del Caribe, coordinación académica y administración.',
+        x: -195, y: 52, w: 68, d: 58, h: 36, angle: -0.06, roof: 'pyramid',
+        labelOffset: { dx: 105, dy: -56 }, alwaysDetails: false
+      },
+      {
+        id: 'coliseo',
+        sector: 'campus',
+        name: 'CUBIERTA / COLISEO',
+        icon: 'whistle',
+        color: '#00ff9d',
+        area: '1,150 m²',
+        status: 'Activo',
+        capacity: '450 personas',
+        desc: 'Coliseo cubierto multipropósito para eventos académicos, deporte y bienestar al aprendiz.',
+        x: -280, y: 108, w: 86, d: 66, h: 46, angle: 0.68, roof: 'twin',
+        labelOffset: { dx: -75, dy: -80 }, alwaysDetails: false
+      },
+      {
+        id: 'cancha-multiple',
+        sector: 'campus',
+        name: 'CANCHA MÚLTIPLE DEPORTIVA',
+        icon: 'whistle',
+        color: '#00ff9d',
+        area: '820 m²',
+        status: 'Activo',
+        capacity: '60 personas',
+        desc: 'Cancha sintética demarcada con malla perimetral y escaneo de superficie LiDAR.',
+        x: -302, y: 232, w: 74, d: 135, h: 6, angle: -0.02, roof: 'court',
+        labelOffset: { dx: 118, dy: 65 }, alwaysDetails: false
+      },
+      {
+        id: 'cubierta-sur',
+        sector: 'campus',
+        name: 'AULA DEPORTIVA / GRADERÍA SUR',
+        icon: 'book',
+        color: '#00ff9d',
+        area: '1,020 m²',
+        status: 'Activo',
+        capacity: '140 personas',
+        desc: 'Nave cubierta al sur de la cancha para prácticas formativas y actividades recreativas.',
+        x: -292, y: 385, w: 118, d: 78, h: 48, angle: -0.04, roof: 'gable',
+        labelOffset: { dx: 0, dy: -65 }, alwaysDetails: false
+      },
+      {
+        id: 'bloque-c',
+        sector: 'campus',
+        name: 'BLOQUE C - AULAS Y TALLERES',
+        icon: 'book',
+        color: '#00ff9d',
+        area: '1,420 m²',
+        status: 'Activo',
+        capacity: '250 personas',
+        desc: 'Complejo central de 4 cuerpos con aulas de formación, TIC y talleres del SENA CBC.',
+        x: 98, y: 120, w: 102, d: 175, h: 52, angle: -0.07, roof: 'gable',
+        labelOffset: { dx: 15, dy: -155 }, alwaysDetails: true
+      },
+      {
+        id: 'talleres-maquinaria',
+        sector: 'campus',
+        name: 'TALLERES DE MAQUINARIA',
+        icon: 'gear',
+        color: '#ff9100',
+        area: '890 m²',
+        status: 'Activo',
+        capacity: '95 personas',
+        desc: 'Talleres de mecanización agrícola, mantenimiento de tractores, motores y soldadura.',
+        x: 105, y: 305, w: 78, d: 110, h: 44, angle: -0.07, roof: 'gable',
+        labelOffset: { dx: 115, dy: -22 }, alwaysDetails: false
+      },
+      {
+        id: 'area-produccion',
+        sector: 'campus',
+        name: 'ÁREA DE PRODUCCIÓN AGROPECUARIA',
+        icon: 'gear',
+        color: '#ff9100',
+        area: '1,120 m²',
+        status: 'Activo',
+        capacity: '110 personas',
+        desc: 'Módulo en L de coordinación agropecuaria, bioinsumos y formulación de dietas.',
+        x: 222, y: 18, w: 86, d: 64, h: 38, angle: -0.08, roof: 'gable',
+        labelOffset: { dx: 95, dy: -72 }, alwaysDetails: false
+      },
+      {
+        id: 'subestacion-servicios',
+        sector: 'campus',
+        name: 'SUBESTACIÓN / SERVICIOS',
+        icon: 'box',
+        color: '#e2e8f0',
+        area: '540 m²',
+        status: 'Activo',
+        capacity: '50 personas',
+        desc: 'Subestación eléctrica, cuarto de bombas y soporte técnico del campus central.',
+        x: 228, y: 188, w: 64, d: 64, h: 36, angle: -0.07, roof: 'pyramid',
+        labelOffset: { dx: 0, dy: -55 }, alwaysDetails: false
+      },
+      {
+        id: 'bodegas-almacen',
+        sector: 'campus',
+        name: 'BODEGAS / ALMACÉN',
+        icon: 'box',
+        color: '#e2e8f0',
+        area: '1,280 m²',
+        status: 'Activo',
+        capacity: '60 personas',
+        desc: 'Bodega general de insumos agropecuarios, herramientas, semillas y almacén central.',
+        x: 382, y: 135, w: 88, d: 145, h: 50, angle: -0.08, roof: 'gable',
+        labelOffset: { dx: 15, dy: -120 }, alwaysDetails: false
+      },
+      {
+        id: 'porteria-principal',
+        sector: 'campus',
+        name: 'PORTERÍA PRINCIPAL - VÍA LA PAZ',
+        icon: 'home',
+        color: '#00d4ff',
+        area: '320 m²',
+        status: 'Activo',
+        capacity: '30 personas',
+        desc: 'Acceso principal sobre el Km 7 vía Valledupar - La Paz, control vehicular y recepción.',
+        x: -520, y: -230, w: 72, d: 44, h: 30, angle: -0.25, roof: 'gable',
+        labelOffset: { dx: 0, dy: -65 }, alwaysDetails: false
+      },
+
+      // --- SECTOR 2: ESTACIÓN DE ACUICULTURA Y PISCICULTURA (Ubicado correctamente al norte/este del campus) ---
+      {
+        id: 'estanques-piscicultura',
+        sector: 'acuicultura',
+        name: 'ESTANQUES DE PISCICULTURA (TILAPIA Y CACHAMA)',
+        icon: 'fish',
+        color: '#00e5ff',
+        area: '6,800 m²',
+        status: 'En Producción',
+        capacity: '12 Estanques / 85,000 peces',
+        desc: 'Complejo de espejos de agua en tierra con aireación por paleta y monitoreo de oxígeno disuelto.',
+        x: 340, y: -580, w: 340, d: 240, h: 14, angle: 0.04, roof: 'pond',
+        labelOffset: { dx: 0, dy: -90 }, alwaysDetails: true
+      },
+      {
+        id: 'lab-reproduccion-alevinos',
+        sector: 'acuicultura',
+        name: 'LABORATORIO DE REPRODUCCIÓN Y ALEVINOS',
+        icon: 'flask',
+        color: '#00e5ff',
+        area: '950 m²',
+        status: 'Activo',
+        capacity: '65 personas',
+        desc: 'Incubación artificial, reversión sexual, larvicultura y producción de alevinos certificados.',
+        x: 180, y: -380, w: 135, d: 68, h: 40, angle: 0.04, roof: 'gable',
+        labelOffset: { dx: -20, dy: -75 }, alwaysDetails: false
+      },
+      {
+        id: 'sistema-biofloc',
+        sector: 'acuicultura',
+        name: 'SISTEMA BIOFLOC Y TANQUES GEOMEMBRANA',
+        icon: 'fish',
+        color: '#00e5ff',
+        area: '2,100 m²',
+        status: 'En Producción',
+        capacity: '16 Tanques Circulares',
+        desc: 'Batería de tanques circulares en geomembrana de alta densidad con tecnología superintensiva Biofloc.',
+        x: 620, y: -420, w: 210, d: 160, h: 22, angle: 0.0, roof: 'tanks',
+        labelOffset: { dx: 20, dy: -75 }, alwaysDetails: false
+      },
+
+      // --- SECTOR 3: UNIDAD DE GANADERÍA Y ESPECIES MENORES (Ubicado correctamente después de acuicultura / al oeste) ---
+      {
+        id: 'corrales-ordeno',
+        sector: 'ganaderia',
+        name: 'CORRALES DE MANEJO Y ORDEÑO MECÁNICO',
+        icon: 'cow',
+        color: '#ff9100',
+        area: '3,200 m²',
+        status: 'En Producción',
+        capacity: '180 Bovinos',
+        desc: 'Sala de ordeño sistematizado, brete de manejo, báscula electrónica y mangas ganaderas.',
+        x: -850, y: -420, w: 230, d: 155, h: 36, angle: -0.05, roof: 'corral',
+        labelOffset: { dx: 0, dy: -85 }, alwaysDetails: true
+      },
+      {
+        id: 'establo-pastoreo',
+        sector: 'ganaderia',
+        name: 'ESTABLO BOVINO Y ÁREA DE PASTOREO',
+        icon: 'cow',
+        color: '#ff9100',
+        area: '14,500 m²',
+        status: 'Activo',
+        capacity: '240 Cabezas Doble Propósito',
+        desc: 'Potreros de pastoreo rotacional silvopastoril con cerca eléctrica y suplementación bovina.',
+        x: -1120, y: -190, w: 340, d: 220, h: 32, angle: -0.04, roof: 'crops',
+        labelOffset: { dx: -20, dy: -80 }, alwaysDetails: false
+      },
+      {
+        id: 'aprisco-ovino-porcicultura',
+        sector: 'ganaderia',
+        name: 'APRISCO OVINO-CAPRINO Y PORCICULTURA',
+        icon: 'cow',
+        color: '#ff9100',
+        area: '2,400 m²',
+        status: 'En Producción',
+        capacity: '320 Especies Menores',
+        desc: 'Galpones elevados para ovinos de pelo, caprinos lecheros, biodigestor y granja porcícola.',
+        x: -620, y: -220, w: 190, d: 115, h: 38, angle: -0.05, roof: 'gable',
+        labelOffset: { dx: 25, dy: -75 }, alwaysDetails: false
+      },
+
+      // --- SECTOR 4: RÍO CESAR / HUMEDAL Y RONDA HÍDRICA (Extremo este) ---
+      {
+        id: 'cauce-rio-cbc',
+        sector: 'rio',
+        name: 'CAUCE DEL RÍO / RONDA HÍDRICA CBC',
+        icon: 'water',
+        color: '#00b4d8',
+        area: 'Caudal: 4.8 m³/s',
+        status: 'Monitoreo Hídrico',
+        capacity: 'Franja Protectora 3.2 km',
+        desc: 'Corredor fluvial y ronda hídrica del predio con telemetría de nivel, pH, turbidez y caudal.',
+        x: 1480, y: 0, w: 210, d: 520, h: 12, angle: 0.14, roof: 'river',
+        labelOffset: { dx: -40, dy: -90 }, alwaysDetails: true
+      },
+      {
+        id: 'bocatoma-bombeo',
+        sector: 'rio',
+        name: 'BOCATOMA Y PLANTA DE BOMBEO RIEGO',
+        icon: 'water',
+        color: '#00b4d8',
+        area: '680 m²',
+        status: 'Activo',
+        capacity: '120 L/seg hacia Estanques',
+        desc: 'Captación lateral sobre el río, desarenador y estación de bombeo para riego y piscicultura.',
+        x: 1220, y: -180, w: 105, d: 82, h: 36, angle: 0.12, roof: 'pyramid',
+        labelOffset: { dx: -50, dy: -75 }, alwaysDetails: false
+      },
+      {
+        id: 'bosque-seco-tropical',
+        sector: 'rio',
+        name: 'BOSQUE SECO TROPICAL / RESERVA BIOTECNOLÓGICA',
+        icon: 'leaf',
+        color: '#00ff9d',
+        area: '18,000 m²',
+        status: 'Activo',
+        capacity: 'Conservación in-situ',
+        desc: 'Relicto de bosque seco tropical para conservación de flora nativa del Cesar y educación ambiental.',
+        x: 1280, y: 340, w: 280, d: 210, h: 28, angle: 0.05, roof: 'crops',
+        labelOffset: { dx: -20, dy: -75 }, alwaysDetails: false
+      },
+
+      // --- SECTOR 5: VIVEROS, CULTIVOS Y AGROINDUSTRIA (Al sur) ---
+      {
+        id: 'invernaderos-vivero',
+        sector: 'agroindustria',
+        name: 'INVERNADEROS Y VIVERO FORESTAL',
+        icon: 'leaf',
+        color: '#b388ff',
+        area: '2,850 m²',
+        status: 'En Producción',
+        capacity: '60,000 Plántulas',
+        desc: 'Naves de invernadero tipo túnel con nebulización automatizada y aclimatación de material vegetal.',
+        x: -780, y: 560, w: 220, d: 145, h: 42, angle: -0.04, roof: 'greenhouse',
+        labelOffset: { dx: 0, dy: -85 }, alwaysDetails: true
+      },
+      {
+        id: 'planta-agroindustrial',
+        sector: 'agroindustria',
+        name: 'PLANTA DE PROCESAMIENTO AGROINDUSTRIAL',
+        icon: 'gear',
+        color: '#b388ff',
+        area: '1,560 m²',
+        status: 'Activo',
+        capacity: '140 personas',
+        desc: 'Plantas piloto de lácteos, cárnicos, fruver, panificación y control de calidad de alimentos.',
+        x: -480, y: 640, w: 155, d: 98, h: 48, angle: -0.04, roof: 'gable',
+        labelOffset: { dx: 20, dy: -80 }, alwaysDetails: false
+      },
+      {
+        id: 'parcelas-fertirriego',
+        sector: 'agroindustria',
+        name: 'PARCELAS DEMOSTRATIVAS Y FERTIRRIEGO',
+        icon: 'leaf',
+        color: '#00ff9d',
+        area: '9,400 m²',
+        status: 'En Prácticas',
+        capacity: 'Cultivos Tropicales',
+        desc: 'Lotes experimentales de cacao, palma, frutales y hortalizas con riego por goteo solar.',
+        x: -950, y: 320, w: 290, d: 185, h: 10, angle: -0.04, roof: 'crops',
+        labelOffset: { dx: 0, dy: -70 }, alwaysDetails: false
+      }
+    ];
+
+    function getIconSVG(type) {
+      switch (type) {
+        case 'flask':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6m-5 0v5.2L4.4 16A2 2 0 0 0 6 19h12a2 2 0 0 0 1.6-3L14 8.2V3"/></svg>`;
+        case 'fish':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 16s3-6 10-6 10 6 10 6-3 6-10 6-10-6-10-6z" transform="translate(0 -4)"/><polygon points="22 12 18 8 18 16 22 12"/><circle cx="8" cy="12" r="1.5"/></svg>`;
+        case 'cow':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6l3 3h10l3-3M6 9v7a4 4 0 0 0 4 4h4a4 4 0 0 0 4-4V9"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/></svg>`;
+        case 'water':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 8c3-2 6 2 9 0s6-2 9 0"/><path d="M2 13c3-2 6 2 9 0s6-2 9 0"/><path d="M2 18c3-2 6 2 9 0s6-2 9 0"/></svg>`;
+        case 'leaf':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>`;
+        case 'home':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/></svg>`;
+        case 'gear':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
+        case 'whistle':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9.5" cy="14.5" r="5.5"/><path d="M13.5 10.5L21 7v4l-6 3"/></svg>`;
+        case 'box':
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`;
+        default:
+          return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4h7a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-7a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h8z"/></svg>`;
+      }
+    }
+
+    const APP = {
+      buildings: [],
+      selectedId: 'talleres-maquinaria',
+      activeSector: 'campus',
+      editingId: null,
+      photoIndexMap: {},
+      reticleHudMinimized: false,
+      camera: {
+        x: 105,
+        y: 305,
+        zoom: 1.05,
+        pitch: 0.78,
+        is3D: true
+      },
+      interaction: {
+        isDraggingMap: false,
+        draggingBuildingId: null,
+        moveBuildingsMode: false,
+        isDraggingMinimap: false,
+        lastX: 0,
+        lastY: 0,
+        movedDist: 0,
+        keys: { up: false, down: false, left: false, right: false }
+      },
+      arCameraActive: false,
+      videoStream: null,
+      tourActive: false,
+      tourTimer: null,
+      tourIdx: 0,
+      labelNodes: new Map(),
+      anchorCache: new Map(),
+      defaultPhotoCache: new Map(),
+      terrainCanvas: null
+    };
+
+    function getDefaultPhotoForBuilding(b) {
+      if (APP.defaultPhotoCache.has(b.id)) {
+        return APP.defaultPhotoCache.get(b.id);
+      }
+      const c = document.createElement('canvas');
+      c.width = 480;
+      c.height = 270;
+      const g = c.getContext('2d');
+
+      const sky = g.createLinearGradient(0, 0, 0, 175);
+      if (b.sector === 'acuicultura' || b.sector === 'rio') {
+        sky.addColorStop(0, '#042838');
+        sky.addColorStop(1, '#0c5c75');
+      } else if (b.sector === 'ganaderia') {
+        sky.addColorStop(0, '#2c1905');
+        sky.addColorStop(1, '#6b3e0e');
+      } else {
+        sky.addColorStop(0, '#06261d');
+        sky.addColorStop(1, '#134e3a');
+      }
+      g.fillStyle = sky;
+      g.fillRect(0, 0, 480, 175);
+
+      const ground = g.createLinearGradient(0, 170, 0, 270);
+      ground.addColorStop(0, '#2a3d28');
+      ground.addColorStop(1, '#111c14');
+      g.fillStyle = ground;
+      g.fillRect(0, 170, 480, 100);
+
+      g.fillStyle = 'rgba(10, 35, 24, 0.75)';
+      for (let i = 0; i < 12; i++) {
+        g.beginPath();
+        g.arc(30 + i * 42, 168, 26 + (i % 3) * 8, 0, Math.PI * 2);
+        g.fill();
+      }
+
+      g.strokeStyle = b.color || '#00ff9d';
+      g.lineWidth = 2.5;
+
+      if (b.roof === 'pond' || b.roof === 'tanks') {
+        g.fillStyle = 'rgba(0, 229, 255, 0.35)';
+        g.fillRect(55, 165, 370, 75);
+        g.strokeRect(55, 165, 370, 75);
+        for (let w = 0; w < 4; w++) {
+          g.beginPath();
+          g.arc(125 + w * 78, 202, 22, 0, Math.PI * 2);
+          g.stroke();
+        }
+      } else if (b.roof === 'river') {
+        g.fillStyle = 'rgba(0, 180, 216, 0.5)';
+        g.beginPath();
+        g.moveTo(0, 185);
+        g.bezierCurveTo(160, 160, 320, 215, 480, 178);
+        g.lineTo(480, 270);
+        g.lineTo(0, 270);
+        g.closePath();
+        g.fill();
+        g.stroke();
+      } else {
+        g.fillStyle = 'rgba(12, 32, 44, 0.88)';
+        g.fillRect(105, 96, 270, 96);
+        g.strokeRect(105, 96, 270, 96);
+
+        g.fillStyle = hexToRgba(b.color || '#00ff9d', 0.28);
+        g.beginPath();
+        g.moveTo(92, 96);
+        g.lineTo(240, 48);
+        g.lineTo(388, 96);
+        g.closePath();
+        g.fill();
+        g.stroke();
+
+        g.fillStyle = hexToRgba(b.color || '#00ff9d', 0.22);
+        for (let col = 0; col < 5; col++) {
+          g.fillRect(122 + col * 48, 114, 34, 62);
+          g.strokeRect(122 + col * 48, 114, 34, 62);
+        }
+      }
+
+      g.fillStyle = 'rgba(2, 12, 18, 0.82)';
+      g.fillRect(0, 0, 480, 34);
+      g.fillStyle = b.color || '#00ff9d';
+      g.font = 'bold 12px Segoe UI, sans-serif';
+      g.fillText('SENA CBC VALLEDUPAR • REGISTRO VISUAL RA', 14, 21);
+
+      g.fillStyle = 'rgba(2, 12, 18, 0.86)';
+      g.fillRect(0, 236, 480, 34);
+      g.fillStyle = '#ffffff';
+      g.font = 'bold 13px Segoe UI, sans-serif';
+      g.fillText((b.name || '').slice(0, 44), 14, 258);
+
+      const dataUrl = c.toDataURL('image/jpeg', 0.84);
+      APP.defaultPhotoCache.set(b.id, dataUrl);
+      return dataUrl;
+    }
+
+    function getBuildingPhotos(b) {
+      if (Array.isArray(b.photos) && b.photos.length > 0) {
+        return b.photos;
+      }
+      return [getDefaultPhotoForBuilding(b)];
+    }
+
+    function compressImageToDataURL(sourceImgOrVideo, maxW = 640, maxH = 400, quality = 0.78) {
+      const c = document.createElement('canvas');
+      c.width = maxW;
+      c.height = maxH;
+      const g = c.getContext('2d');
+      g.fillStyle = '#021017';
+      g.fillRect(0, 0, maxW, maxH);
+      g.drawImage(sourceImgOrVideo, 0, 0, maxW, maxH);
+      return c.toDataURL('image/jpeg', quality);
+    }
+
+    function addPhotoToBuilding(buildingId, dataUrl) {
+      const b = APP.buildings.find(item => item.id === buildingId);
+      if (!b) return;
+      if (!Array.isArray(b.photos)) {
+        b.photos = [getDefaultPhotoForBuilding(b)];
+      }
+      b.photos.unshift(dataUrl);
+      APP.photoIndexMap[b.id] = 0;
+      saveBuildings();
+      rebuildDOMCallouts();
+      updateInspectorCard();
+      if (APP.editingId === b.id) {
+        renderModalPhotosGrid(b);
+      }
+      showToast(`Nueva foto agregada a "${b.name}"`);
+    }
+
+    const RIVER_PATH = [
+      { x: 1320, y: -1550 },
+      { x: 1410, y: -1020 },
+      { x: 1350, y: -520 },
+      { x: 1490, y: -40 },
+      { x: 1550, y: 420 },
+      { x: 1430, y: 950 },
+      { x: 1580, y: 1550 }
+    ];
+
+    function loadSavedBuildings() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            APP.buildings = parsed;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Usando datos predeterminados:', e);
+      }
+      APP.buildings = JSON.parse(JSON.stringify(INITIAL_BUILDINGS));
+    }
+
+    function saveBuildings() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(APP.buildings));
+      } catch (e) {
+        console.warn('Error al guardar en localStorage:', e);
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('hudToast');
+      t.textContent = msg;
+      t.classList.add('visible');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('visible'), 2900);
+    }
+
+    function buildFullEstateSatelliteCanvas() {
+      const off = document.createElement('canvas');
+      off.width = 2100;
+      off.height = 1600;
+      const ctx = off.getContext('2d');
+      const cx = off.width / 2;
+      const cy = off.height / 2;
+
+      const bgGrad = ctx.createRadialGradient(cx, cy, 120, cx, cy, 1350);
+      bgGrad.addColorStop(0, '#3e392d');
+      bgGrad.addColorStop(0.45, '#263425');
+      bgGrad.addColorStop(1, '#0e1f16');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, off.width, off.height);
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(120, 175, 95, 0.22)';
+      ctx.fillStyle = 'rgba(42, 78, 38, 0.35)';
+      const paddocks = [
+        [-1250, -420, 880, 580],
+        [180, -720, 820, 520],
+        [-950, 220, 820, 580]
+      ];
+      paddocks.forEach(([wx, wy, ww, wh]) => {
+        const px = cx + wx * 0.5;
+        const py = cy + wy * 0.5;
+        ctx.fillRect(px, py, ww * 0.5, wh * 0.5);
+        ctx.strokeRect(px, py, ww * 0.5, wh * 0.5);
+      });
+      ctx.restore();
+
+      const sandSpots = [
+        [0, 120, 440], [-850, -380, 380], [340, -580, 360], [-780, 560, 340]
+      ];
+      sandSpots.forEach(([wx, wy, r]) => {
+        const sx = cx + wx * 0.5;
+        const sy = cy + wy * 0.5;
+        const sr = r * 0.5;
+        const g = ctx.createRadialGradient(sx, sy, 10, sx, sy, sr);
+        g.addColorStop(0, 'rgba(138, 117, 86, 0.55)');
+        g.addColorStop(0.65, 'rgba(98, 82, 60, 0.28)');
+        g.addColorStop(1, 'rgba(30, 44, 32, 0)');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.strokeStyle = 'rgba(162, 141, 108, 0.62)';
+      ctx.lineWidth = 18;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      ctx.moveTo(cx - 980, cy - 320);
+      ctx.lineTo(cx - 260, cy - 65);
+      ctx.lineTo(cx + 85, cy + 20);
+      ctx.lineTo(cx + 95, cy + 320);
+      ctx.stroke();
+
+      ctx.lineWidth = 13;
+      ctx.beginPath();
+      ctx.moveTo(cx + 85, cy + 20);
+      ctx.lineTo(cx + 340, cy - 280);
+      ctx.lineTo(cx + 620, cy - 120);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(cx - 195, cy + 52);
+      ctx.lineTo(cx - 520, cy - 120);
+      ctx.lineTo(cx - 720, cy - 220);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(cx - 195, cy + 120);
+      ctx.lineTo(cx - 420, cy + 380);
+      ctx.lineTo(cx - 580, cy + 420);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(14, 65, 88, 0.85)';
+      ctx.lineWidth = 74;
+      ctx.beginPath();
+      RIVER_PATH.forEach((pt, idx) => {
+        const rx = cx + pt.x * 0.5;
+        const ry = cy + pt.y * 0.5;
+        if (idx === 0) ctx.moveTo(rx, ry);
+        else ctx.lineTo(rx, ry);
+      });
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(0, 180, 216, 0.48)';
+      ctx.lineWidth = 38;
+      ctx.stroke();
+      ctx.restore();
+
+      for (let i = 0; i < 95; i++) {
+        const angle = (i * 137.5) * (Math.PI / 180);
+        const dist = 120 + (i * 19) % 920;
+        const tx = cx + Math.cos(angle) * dist * 1.15;
+        const ty = cy + Math.sin(angle) * dist * 0.85;
+        const tr = 24 + (i % 5) * 11;
+        const tg = ctx.createRadialGradient(tx - 4, ty - 4, 3, tx, ty, tr);
+        tg.addColorStop(0, 'rgba(30, 74, 44, 0.85)');
+        tg.addColorStop(0.6, 'rgba(17, 48, 29, 0.65)');
+        tg.addColorStop(1, 'rgba(10, 28, 17, 0)');
+        ctx.fillStyle = tg;
+        ctx.beginPath();
+        ctx.arc(tx, ty, tr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      APP.terrainCanvas = off;
+      loadExpandedEsriMosaic(off);
+    }
+
+    function loadExpandedEsriMosaic(targetCanvas) {
+      const lat = 10.3988;
+      const lng = -73.2297;
+      const z = 17;
+      const n = Math.pow(2, z);
+      const centerTileX = Math.floor(((lng + 180) / 360) * n);
+      const latRad = (lat * Math.PI) / 180;
+      const centerTileY = Math.floor(
+        ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n
+      );
+
+      const ctx = targetCanvas.getContext('2d');
+      const cx = targetCanvas.width / 2;
+      const cy = targetCanvas.height / 2;
+
+      for (let dx = -3; dx <= 3; dx++) {
+        for (let dy = -2; dy <= 2; dy++) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          const tx = centerTileX + dx;
+          const ty = centerTileY + dy;
+          img.onload = () => {
+            ctx.save();
+            ctx.globalAlpha = 0.42;
+            const drawX = cx + dx * 300 - 150;
+            const drawY = cy + dy * 300 - 150;
+            ctx.drawImage(img, drawX, drawY, 300, 300);
+            ctx.restore();
+          };
+          img.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${tx}`;
+        }
+      }
+    }
+
+    function rebuildDOMCallouts() {
+      const layer = document.getElementById('labelsLayer');
+      layer.innerHTML = '';
+      APP.labelNodes.clear();
+
+      APP.buildings.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'building-callout' + (b.alwaysDetails ? ' always-details' : '');
+        card.style.setProperty('--card-color', b.color);
+        card.dataset.id = b.id;
+
+        const photos = getBuildingPhotos(b);
+        const curIdx = (APP.photoIndexMap[b.id] || 0) % photos.length;
+        const activePhoto = photos[curIdx];
+
+        card.innerHTML = `
+          <div class="callout-icon">${getIconSVG(b.icon)}</div>
+          <div class="callout-body">
+            <div class="callout-title">${escapeHTML(b.name)}</div>
+            <div class="callout-thumb-wrap">
+              <img class="callout-thumb-img" src="${activePhoto}" alt="${escapeHTML(b.name)}" />
+            </div>
+            <div class="callout-desc-preview">${escapeHTML(b.desc || '')}</div>
+            <div class="callout-meta">
+              <div>Área: ${escapeHTML(b.area)} | ${escapeHTML(b.status)}</div>
+              <div>Cap.: ${escapeHTML(b.capacity)} | 📷 ${photos.length} foto(s)</div>
+            </div>
+          </div>
+          <button type="button" class="callout-edit-btn" title="Renombrar, cambiar descripción o agregar fotos">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </button>
+        `;
+
+        card.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectBuilding(b.id, true);
+          if (e.target.closest('.callout-edit-btn')) {
+            openEditModalFor(b.id);
+          }
+        });
+
+        layer.appendChild(card);
+        APP.labelNodes.set(b.id, card);
+      });
+
+      updateInspectorCard();
+    }
+
+    function escapeHTML(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    const canvas = document.getElementById('arCanvas');
+    const ctx = canvas.getContext('2d');
+    const miniCanvas = document.getElementById('minimapCanvas');
+    const miniCtx = miniCanvas.getContext('2d');
+
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function worldToScreen(wx, wy, wz = 0) {
+      const cw = window.innerWidth;
+      const ch = window.innerHeight;
+      const cam = APP.camera;
+      const relX = (wx - cam.x) * cam.zoom;
+      const relY = (wy - cam.y) * cam.zoom * cam.pitch;
+      const liftZ = wz * cam.zoom * (cam.is3D ? 0.92 : 0.2);
+      return {
+        x: cw / 2 + relX,
+        y: ch / 2 + relY - liftZ
+      };
+    }
+
+    function screenToWorld(sx, sy) {
+      const cw = window.innerWidth;
+      const ch = window.innerHeight;
+      const cam = APP.camera;
+      return {
+        x: (sx - cw / 2) / cam.zoom + cam.x,
+        y: (sy - ch / 2) / (cam.zoom * cam.pitch) + cam.y
+      };
+    }
+
+    function bldPointToScreen(b, lx, ly, lz) {
+      const cos = Math.cos(b.angle || 0);
+      const sin = Math.sin(b.angle || 0);
+      const wx = b.x + (lx * cos - ly * sin);
+      const wy = b.y + (lx * sin + ly * cos);
+      return worldToScreen(wx, wy, lz);
+    }
+
+    function drawRiverAndPathsHologram(timeSec) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0, 180, 216, 0.55)';
+      ctx.lineWidth = Math.max(2, 55 * APP.camera.zoom);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      RIVER_PATH.forEach((pt, idx) => {
+        const s = worldToScreen(pt.x, pt.y, 0);
+        if (idx === 0) ctx.moveTo(s.x, s.y);
+        else ctx.lineTo(s.x, s.y);
+      });
+      ctx.stroke();
+
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([14, 12]);
+      ctx.lineDashOffset = -timeSec * 38;
+      ctx.beginPath();
+      RIVER_PATH.forEach((pt, idx) => {
+        const s = worldToScreen(pt.x, pt.y, 2);
+        if (idx === 0) ctx.moveTo(s.x, s.y);
+        else ctx.lineTo(s.x, s.y);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const sectorPaths = [
+        [[-520, -230], [-195, 52], [98, 120], [105, 305]],
+        [[98, 120], [180, -380], [340, -580]],
+        [[180, -380], [1220, -180], [1480, 0]],
+        [[-195, 52], [-850, -420], [-1120, -190]],
+        [[-245, -45], [-480, 640], [-780, 560]]
+      ];
+
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([6, 6]);
+      sectorPaths.forEach(poly => {
+        ctx.beginPath();
+        poly.forEach(([wx, wy], i) => {
+          const p = worldToScreen(wx, wy, 1);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      ctx.restore();
+    }
+
+    function draw3DSkeletonBuilding(b, isSelected, timeSec) {
+      const hw = b.w / 2;
+      const hd = b.d / 2;
+      const h = b.h || 36;
+
+      const b0 = bldPointToScreen(b, -hw, -hd, 0);
+      const b1 = bldPointToScreen(b, hw, -hd, 0);
+      const b2 = bldPointToScreen(b, hw, hd, 0);
+      const b3 = bldPointToScreen(b, -hw, hd, 0);
+
+      const cw = window.innerWidth;
+      const ch = window.innerHeight;
+      if (
+        Math.max(b0.x, b1.x, b2.x, b3.x) < -220 ||
+        Math.min(b0.x, b1.x, b2.x, b3.x) > cw + 220 ||
+        Math.max(b0.y, b1.y, b2.y, b3.y) < -220 ||
+        Math.min(b0.y, b1.y, b2.y, b3.y) > ch + 220
+      ) {
+        APP.anchorCache.set(b.id, bldPointToScreen(b, 0, 0, h));
+        return;
+      }
+
+      const t0 = bldPointToScreen(b, -hw, -hd, h);
+      const t1 = bldPointToScreen(b, hw, -hd, h);
+      const t2 = bldPointToScreen(b, hw, hd, h);
+      const t3 = bldPointToScreen(b, -hw, hd, h);
+
+      ctx.save();
+
+      if (b.roof === 'court' || b.roof === 'crops') {
+        ctx.fillStyle = hexToRgba(b.color, 0.38);
+        const step = b.roof === 'court' ? 14 : 28;
+        for (let gx = -hw - 16; gx <= hw + 16; gx += step) {
+          for (let gy = -hd - 16; gy <= hd + 16; gy += step) {
+            const pt = bldPointToScreen(b, gx, gy, 0);
+            ctx.fillRect(pt.x - 1, pt.y - 1, 2, 2);
+          }
+        }
+      }
+
+      ctx.fillStyle = hexToRgba(b.color, isSelected ? 0.28 : 0.14);
+      ctx.beginPath();
+      ctx.moveTo(b0.x, b0.y); ctx.lineTo(b1.x, b1.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(b3.x, b3.y);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = hexToRgba(b.color, isSelected ? 0.22 : 0.1);
+      [
+        [b0, b1, t1, t0],
+        [b1, b2, t2, t1],
+        [b2, b3, t3, t2],
+        [b3, b0, t0, t3]
+      ].forEach(quad => {
+        ctx.beginPath();
+        ctx.moveTo(quad[0].x, quad[0].y);
+        ctx.lineTo(quad[1].x, quad[1].y);
+        ctx.lineTo(quad[2].x, quad[2].y);
+        ctx.lineTo(quad[3].x, quad[3].y);
+        ctx.closePath();
+        ctx.fill();
+      });
+
+      ctx.strokeStyle = b.color;
+      ctx.lineWidth = isSelected ? 2.4 : 1.55;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = isSelected ? 14 : 6;
+
+      ctx.beginPath();
+      ctx.moveTo(b0.x, b0.y); ctx.lineTo(b1.x, b1.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(b3.x, b3.y); ctx.closePath();
+      ctx.moveTo(t0.x, t0.y); ctx.lineTo(t1.x, t1.y); ctx.lineTo(t2.x, t2.y); ctx.lineTo(t3.x, t3.y); ctx.closePath();
+      ctx.moveTo(b0.x, b0.y); ctx.lineTo(t0.x, t0.y);
+      ctx.moveTo(b1.x, b1.y); ctx.lineTo(t1.x, t1.y);
+      ctx.moveTo(b2.x, b2.y); ctx.lineTo(t2.x, t2.y);
+      ctx.moveTo(b3.x, b3.y); ctx.lineTo(t3.x, t3.y);
+      ctx.stroke();
+
+      let roofPeakScreen = bldPointToScreen(b, 0, 0, h + 14);
+      ctx.lineWidth = isSelected ? 1.5 : 1.1;
+
+      if (b.roof === 'gable') {
+        const peakZ = h + 18;
+        const segments = 3;
+        ctx.beginPath();
+        for (let i = 0; i <= segments; i++) {
+          const frac = -hd + (i / segments) * b.d;
+          const lT = bldPointToScreen(b, -hw, frac, h);
+          const rT = bldPointToScreen(b, hw, frac, h);
+          const ridge = bldPointToScreen(b, 0, frac, peakZ);
+          ctx.moveTo(lT.x, lT.y); ctx.lineTo(ridge.x, ridge.y); ctx.lineTo(rT.x, rT.y);
+          ctx.moveTo(lT.x, lT.y); ctx.lineTo(rT.x, rT.y);
+        }
+        const rStart = bldPointToScreen(b, 0, -hd, peakZ);
+        const rEnd = bldPointToScreen(b, 0, hd, peakZ);
+        ctx.moveTo(rStart.x, rStart.y); ctx.lineTo(rEnd.x, rEnd.y);
+        ctx.stroke();
+        roofPeakScreen = bldPointToScreen(b, 0, -hd * 0.35, peakZ);
+      } else if (b.roof === 'pyramid') {
+        const apex = bldPointToScreen(b, 0, 0, h + 20);
+        ctx.beginPath();
+        [t0, t1, t2, t3].forEach(c => { ctx.moveTo(c.x, c.y); ctx.lineTo(apex.x, apex.y); });
+        ctx.stroke();
+        roofPeakScreen = apex;
+      } else if (b.roof === 'twin') {
+        const pZ = h + 18;
+        const r1a = bldPointToScreen(b, -hw * 0.5, -hd, pZ);
+        const r1b = bldPointToScreen(b, -hw * 0.5, hd, pZ);
+        const r2a = bldPointToScreen(b, hw * 0.5, -hd, pZ);
+        const r2b = bldPointToScreen(b, hw * 0.5, hd, pZ);
+        const midA = bldPointToScreen(b, 0, -hd, h * 0.85);
+        const midB = bldPointToScreen(b, 0, hd, h * 0.85);
+        ctx.beginPath();
+        ctx.moveTo(t0.x, t0.y); ctx.lineTo(r1a.x, r1a.y); ctx.lineTo(midA.x, midA.y); ctx.lineTo(r2a.x, r2a.y); ctx.lineTo(t1.x, t1.y);
+        ctx.moveTo(t3.x, t3.y); ctx.lineTo(r1b.x, r1b.y); ctx.lineTo(midB.x, midB.y); ctx.lineTo(r2b.x, r2b.y); ctx.lineTo(t2.x, t2.y);
+        ctx.moveTo(r1a.x, r1a.y); ctx.lineTo(r1b.x, r1b.y);
+        ctx.moveTo(r2a.x, r2a.y); ctx.lineTo(r2b.x, r2b.y);
+        ctx.stroke();
+        roofPeakScreen = bldPointToScreen(b, 0, 0, pZ);
+      } else if (b.roof === 'pond') {
+        const cols = 3;
+        const rows = 2;
+        const cellW = (b.w - 24) / cols;
+        const cellD = (b.d - 20) / rows;
+        ctx.beginPath();
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cxLocal = -hw + 12 + c * cellW + cellW / 2;
+            const cyLocal = -hd + 10 + r * cellD + cellD / 2;
+            const pA = bldPointToScreen(b, cxLocal - cellW * 0.42, cyLocal - cellD * 0.4, h * 0.5);
+            const pB = bldPointToScreen(b, cxLocal + cellW * 0.42, cyLocal - cellD * 0.4, h * 0.5);
+            const pC = bldPointToScreen(b, cxLocal + cellW * 0.42, cyLocal + cellD * 0.4, h * 0.5);
+            const pD = bldPointToScreen(b, cxLocal - cellW * 0.42, cyLocal + cellD * 0.4, h * 0.5);
+            ctx.moveTo(pA.x, pA.y); ctx.lineTo(pB.x, pB.y); ctx.lineTo(pC.x, pC.y); ctx.lineTo(pD.x, pD.y); ctx.closePath();
+
+            const centerWave = bldPointToScreen(b, cxLocal, cyLocal, h * 0.6);
+            const waveR = (8 + ((timeSec * 12 + c * 5 + r * 7) % 18)) * APP.camera.zoom;
+            ctx.moveTo(centerWave.x + waveR, centerWave.y);
+            ctx.arc(centerWave.x, centerWave.y, waveR, 0, Math.PI * 2);
+          }
+        }
+        ctx.stroke();
+        roofPeakScreen = bldPointToScreen(b, 0, 0, h + 10);
+      } else if (b.roof === 'tanks') {
+        const cols = 4;
+        const rows = 2;
+        ctx.beginPath();
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const lx = -hw * 0.72 + (c / (cols - 1)) * (b.w * 0.72);
+            const ly = -hd * 0.52 + (r / (rows - 1)) * (b.d * 0.52);
+            const botC = bldPointToScreen(b, lx, ly, 0);
+            const topC = bldPointToScreen(b, lx, ly, h);
+            const rad = 18 * APP.camera.zoom;
+            ctx.moveTo(botC.x + rad, botC.y);
+            ctx.ellipse(botC.x, botC.y, rad, rad * APP.camera.pitch, 0, 0, Math.PI * 2);
+            ctx.moveTo(topC.x + rad, topC.y);
+            ctx.ellipse(topC.x, topC.y, rad, rad * APP.camera.pitch, 0, 0, Math.PI * 2);
+          }
+        }
+        ctx.stroke();
+        roofPeakScreen = bldPointToScreen(b, 0, 0, h + 12);
+      } else if (b.roof === 'corral') {
+        ctx.beginPath();
+        for (let i = -2; i <= 2; i++) {
+          const xDiv = (i / 3) * hw;
+          const p1 = bldPointToScreen(b, xDiv, -hd, h * 0.6);
+          const p2 = bldPointToScreen(b, xDiv, hd, h * 0.6);
+          ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+        }
+        const m1 = bldPointToScreen(b, -hw, 0, h * 0.6);
+        const m2 = bldPointToScreen(b, hw, 0, h * 0.6);
+        ctx.moveTo(m1.x, m1.y); ctx.lineTo(m2.x, m2.y);
+        ctx.stroke();
+        roofPeakScreen = bldPointToScreen(b, 0, 0, h + 14);
+      } else if (b.roof === 'greenhouse') {
+        ctx.beginPath();
+        for (let i = -3; i <= 3; i++) {
+          const yPos = (i / 3) * hd;
+          const leftP = bldPointToScreen(b, -hw, yPos, h * 0.55);
+          const midPeak = bldPointToScreen(b, 0, yPos, h + 22);
+          const rightP = bldPointToScreen(b, hw, yPos, h * 0.55);
+          ctx.moveTo(leftP.x, leftP.y);
+          ctx.quadraticCurveTo(midPeak.x, midPeak.y - 10 * APP.camera.zoom, rightP.x, rightP.y);
+        }
+        ctx.stroke();
+        roofPeakScreen = bldPointToScreen(b, 0, 0, h + 20);
+      } else if (b.roof === 'crops' || b.roof === 'river') {
+        ctx.beginPath();
+        for (let i = -3; i <= 3; i++) {
+          const pos = (i / 4) * hd;
+          const s1 = bldPointToScreen(b, -hw * 0.9, pos, h * 0.5);
+          const s2 = bldPointToScreen(b, hw * 0.9, pos, h * 0.5);
+          ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y);
+        }
+        ctx.stroke();
+        roofPeakScreen = bldPointToScreen(b, 0, 0, h + 10);
+      } else if (b.roof === 'court') {
+        const mL = bldPointToScreen(b, -hw, 0, h);
+        const mR = bldPointToScreen(b, hw, 0, h);
+        const cCenter = bldPointToScreen(b, 0, 0, h);
+        ctx.beginPath();
+        ctx.moveTo(mL.x, mL.y); ctx.lineTo(mR.x, mR.y);
+        ctx.arc(cCenter.x, cCenter.y, 14 * APP.camera.zoom, 0, Math.PI * 2);
+        ctx.stroke();
+        roofPeakScreen = bldPointToScreen(b, hw * 0.4, hd * 0.6, h);
+      }
+
+      APP.anchorCache.set(b.id, roofPeakScreen);
+
+      if (isSelected) {
+        const pulse = 1 + Math.sin(timeSec * 4.2) * 0.06;
+        const p0 = bldPointToScreen(b, -hw * pulse, -hd * pulse, 0);
+        const p1 = bldPointToScreen(b, hw * pulse, -hd * pulse, 0);
+        const p2 = bldPointToScreen(b, hw * pulse, hd * pulse, 0);
+        const p3 = bldPointToScreen(b, -hw * pulse, hd * pulse, 0);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.4;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath();
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      ctx.restore();
+    }
+
+    function hexToRgba(hex, alpha) {
+      const clean = (hex || '#00ff9d').replace('#', '');
+      const num = parseInt(clean, 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function drawTelemetryAndReticle(timeSec) {
+      const cw = window.innerWidth;
+      const ch = window.innerHeight;
+      const cx = cw / 2;
+      const cy = ch / 2;
+
+      ctx.save();
+
+      APP.buildings.forEach(b => {
+        const roofPt = APP.anchorCache.get(b.id);
+        const cardEl = APP.labelNodes.get(b.id);
+        if (!roofPt || !cardEl) return;
+
+        if (roofPt.x < -120 || roofPt.x > cw + 120 || roofPt.y < -120 || roofPt.y > ch + 120) {
+          cardEl.style.display = 'none';
+          return;
+        }
+        cardEl.style.display = 'flex';
+
+        const scaleFactor = Math.min(1.1, Math.max(0.55, APP.camera.zoom));
+        const offX = (b.labelOffset ? b.labelOffset.dx : 0) * scaleFactor;
+        const offY = (b.labelOffset ? b.labelOffset.dy : -75) * scaleFactor;
+
+        const cardX = Math.max(92, Math.min(cw - 92, roofPt.x + offX));
+        const cardY = Math.max(108, Math.min(ch - 85, roofPt.y + offY));
+
+        cardEl.style.transform = `translate3d(${cardX}px, ${cardY}px, 0) translate(-50%, -100%)`;
+        if (b.id === APP.selectedId) {
+          cardEl.classList.add('is-active');
+        } else {
+          cardEl.classList.remove('is-active');
+        }
+
+        ctx.strokeStyle = b.color;
+        ctx.lineWidth = b.id === APP.selectedId ? 2.1 : 1.25;
+        ctx.shadowColor = b.color;
+        ctx.shadowBlur = 5;
+        ctx.beginPath();
+        ctx.moveTo(roofPt.x, roofPt.y);
+        ctx.lineTo(cardX, cardY - 4);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(roofPt.x, roofPt.y, 2.6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const activeBld = APP.buildings.find(b => b.id === APP.selectedId);
+      if (activeBld) {
+        const activePt = APP.anchorCache.get(activeBld.id);
+        if (activePt) {
+          ctx.strokeStyle = activeBld.color;
+          ctx.lineWidth = 1.4;
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(activePt.x, activePt.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+
+      const boxHalf = 62;
+      const bracketLen = 20;
+      ctx.strokeStyle = 'rgba(224, 242, 254, 0.92)';
+      ctx.lineWidth = 2.4;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 8;
+
+      ctx.beginPath();
+      ctx.moveTo(cx - boxHalf, cy - boxHalf + bracketLen); ctx.lineTo(cx - boxHalf, cy - boxHalf); ctx.lineTo(cx - boxHalf + bracketLen, cy - boxHalf);
+      ctx.moveTo(cx + boxHalf - bracketLen, cy - boxHalf); ctx.lineTo(cx + boxHalf, cy - boxHalf); ctx.lineTo(cx + boxHalf, cy - boxHalf + bracketLen);
+      ctx.moveTo(cx - boxHalf, cy + boxHalf - bracketLen); ctx.lineTo(cx - boxHalf, cy + boxHalf); ctx.lineTo(cx - boxHalf + bracketLen, cy + boxHalf);
+      ctx.moveTo(cx + boxHalf - bracketLen, cy + boxHalf); ctx.lineTo(cx + boxHalf, cy + boxHalf); ctx.lineTo(cx + boxHalf, cy + boxHalf - bracketLen);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(timeSec * 0.45);
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.78)';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        ctx.arc(0, 0, 42, i * (Math.PI / 2) + 0.18, (i + 1) * (Math.PI / 2) - 0.18);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - 11, cy); ctx.lineTo(cx - 4, cy);
+      ctx.moveTo(cx + 4, cy); ctx.lineTo(cx + 11, cy);
+      ctx.moveTo(cx, cy - 11); ctx.lineTo(cx, cy - 4);
+      ctx.moveTo(cx, cy + 4); ctx.lineTo(cx, cy + 11);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawMinimapRadar() {
+      const mw = miniCanvas.width;
+      const mh = miniCanvas.height;
+      miniCtx.clearRect(0, 0, mw, mh);
+
+      miniCtx.fillStyle = '#05161c';
+      miniCtx.fillRect(0, 0, mw, mh);
+
+      miniCtx.strokeStyle = 'rgba(0, 240, 255, 0.12)';
+      miniCtx.lineWidth = 1;
+      for (let x = 0; x < mw; x += 25) {
+        miniCtx.beginPath(); miniCtx.moveTo(x, 0); miniCtx.lineTo(x, mh); miniCtx.stroke();
+      }
+      for (let y = 0; y < mh; y += 25) {
+        miniCtx.beginPath(); miniCtx.moveTo(0, y); miniCtx.lineTo(mw, y); miniCtx.stroke();
+      }
+
+      miniCtx.strokeStyle = '#00b4d8';
+      miniCtx.lineWidth = 4;
+      miniCtx.beginPath();
+      RIVER_PATH.forEach((pt, idx) => {
+        const mx = (pt.x / WORLD_W + 0.5) * mw;
+        const my = (pt.y / WORLD_H + 0.5) * mh;
+        if (idx === 0) miniCtx.moveTo(mx, my);
+        else miniCtx.lineTo(mx, my);
+      });
+      miniCtx.stroke();
+
+      APP.buildings.forEach(b => {
+        const mx = (b.x / WORLD_W + 0.5) * mw;
+        const my = (b.y / WORLD_H + 0.5) * mh;
+        const bw = Math.max(4, (b.w / WORLD_W) * mw);
+        const bd = Math.max(4, (b.d / WORLD_H) * mh);
+        miniCtx.fillStyle = b.color;
+        miniCtx.fillRect(mx - bw / 2, my - bd / 2, bw, bd);
+        if (b.id === APP.selectedId) {
+          miniCtx.strokeStyle = '#ffffff';
+          miniCtx.lineWidth = 1.5;
+          miniCtx.strokeRect(mx - bw / 2 - 2, my - bd / 2 - 2, bw + 4, bd + 4);
+        }
+      });
+
+      const camX = (APP.camera.x / WORLD_W + 0.5) * mw;
+      const camY = (APP.camera.y / WORLD_H + 0.5) * mh;
+      const viewW = Math.min(mw, ((window.innerWidth / APP.camera.zoom) / WORLD_W) * mw);
+      const viewH = Math.min(mh, ((window.innerHeight / (APP.camera.zoom * APP.camera.pitch)) / WORLD_H) * mh);
+
+      miniCtx.strokeStyle = '#00f0ff';
+      miniCtx.lineWidth = 1.5;
+      miniCtx.strokeRect(camX - viewW / 2, camY - viewH / 2, viewW, viewH);
+    }
+
+    function findBuildingAtScreenPos(sx, sy) {
+      const worldPt = screenToWorld(sx, sy);
+      let best = null;
+      let bestDist = Infinity;
+
+      APP.buildings.forEach(b => {
+        const dx = worldPt.x - b.x;
+        const dy = worldPt.y - b.y;
+        const radius = Math.max(b.w, b.d) * 0.68;
+        const dist = Math.hypot(dx, dy);
+        if (dist <= radius && dist < bestDist) {
+          bestDist = dist;
+          best = b;
+        }
+      });
+      return best;
+    }
+
+    function autoScanCenterReticle() {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      const worldPt = screenToWorld(cx, cy);
+      let closest = null;
+      let minDist = Infinity;
+
+      APP.buildings.forEach(b => {
+        const d = Math.hypot(worldPt.x - b.x, worldPt.y - b.y);
+        if (d < minDist) {
+          minDist = d;
+          closest = b;
+        }
+      });
+
+      if (closest && minDist < 460 && closest.id !== APP.selectedId) {
+        selectBuilding(closest.id, false);
+      }
+    }
+
+    function selectBuilding(id, smoothCenter = false) {
+      const b = APP.buildings.find(item => item.id === id);
+      if (!b) return;
+      APP.selectedId = id;
+      updateInspectorCard();
+
+      if (smoothCenter) {
+        animateCameraTo(b.x, b.y, Math.max(APP.camera.zoom, 0.85));
+      }
+    }
+
+    function flyToSector(sectorKey) {
+      const sec = SECTORS[sectorKey];
+      if (!sec) return;
+      APP.activeSector = sectorKey;
+
+      document.querySelectorAll('.sector-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sector === sectorKey);
+      });
+
+      document.getElementById('gpsSectorText').textContent = sec.name;
+      animateCameraTo(sec.x, sec.y, sec.zoom);
+
+      if (sectorKey !== 'all') {
+        const firstInSec = APP.buildings.find(b => b.sector === sectorKey);
+        if (firstInSec) {
+          APP.selectedId = firstInSec.id;
+          updateInspectorCard();
+        }
+      }
+    }
+
+    function animateCameraTo(targetX, targetY, targetZoom = APP.camera.zoom) {
+      const startX = APP.camera.x;
+      const startY = APP.camera.y;
+      const startZ = APP.camera.zoom;
+      const startTime = performance.now();
+      const duration = 560;
+
+      function step(now) {
+        const t = Math.min(1, (now - startTime) / duration);
+        const ease = 1 - Math.pow(1 - t, 3);
+        APP.camera.x = startX + (targetX - startX) * ease;
+        APP.camera.y = startY + (targetY - startY) * ease;
+        APP.camera.zoom = startZ + (targetZoom - startZ) * ease;
+        updateZoomBarUI();
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function updateZoomBarUI() {
+      const pct = ((APP.camera.zoom - 0.28) / (2.2 - 0.28)) * 100;
+      document.getElementById('zoomFillBar').style.height = `${Math.max(10, Math.min(96, pct))}%`;
+    }
+
+    function updateInspectorCard() {
+      const b = APP.buildings.find(item => item.id === APP.selectedId);
+      if (!b) return;
+      const card = document.getElementById('scannerInspector');
+      card.style.setProperty('--active-color', b.color);
+
+      const sectorTitles = {
+        campus: '1. CAMPUS CENTRAL',
+        acuicultura: '2. ACUICULTURA Y PISCICULTURA',
+        ganaderia: '3. GANADERÍA Y PECUARIA',
+        rio: '4. RÍO CESAR / RONDA HÍDRICA',
+        agroindustria: '5. AGROINDUSTRIA Y VIVEROS'
+      };
+      const photos = getBuildingPhotos(b);
+      const curIdx = (APP.photoIndexMap[b.id] || 0) % photos.length;
+
+      document.getElementById('inspBadge').textContent = sectorTitles[b.sector] || 'OBJETIVO ESCANEADO';
+      document.getElementById('inspName').textContent = b.name;
+      document.getElementById('inspDesc').textContent = b.desc || '';
+      document.getElementById('inspArea').textContent = b.area;
+      document.getElementById('inspStatus').textContent = b.status;
+      document.getElementById('inspStatus').style.color = b.color;
+      document.getElementById('inspPhotoCount').textContent = `${photos.length} Foto(s)`;
+
+      const retHud = document.getElementById('reticlePhotoHud');
+      retHud.style.setProperty('--focus-color', b.color);
+      document.getElementById('reticleLockTag').textContent = APP.arCameraActive
+        ? 'CÁMARA RA • ENFOCADO'
+        : 'ENFOCADO EN MIRA (+)';
+      document.getElementById('reticleFocusImg').src = photos[curIdx];
+      document.getElementById('reticlePhotoCounter').textContent = `${curIdx + 1} / ${photos.length}`;
+      document.getElementById('reticleFocusTitle').textContent = b.name;
+      document.getElementById('reticleFocusDesc').textContent = b.desc || 'Sin descripción registrada.';
+
+      const calloutEl = APP.labelNodes.get(b.id);
+      if (calloutEl) {
+        const thumbImg = calloutEl.querySelector('.callout-thumb-img');
+        if (thumbImg) thumbImg.src = photos[curIdx];
+      }
+    }
+
+    function renderLoop(timestamp) {
+      requestAnimationFrame(renderLoop);
+      const timeSec = timestamp * 0.001;
+
+      const k = APP.interaction.keys;
+      const moveSpeed = 7.5 / APP.camera.zoom;
+      let moved = false;
+      if (k.up) { APP.camera.y -= moveSpeed; moved = true; }
+      if (k.down) { APP.camera.y += moveSpeed; moved = true; }
+      if (k.left) { APP.camera.x -= moveSpeed; moved = true; }
+      if (k.right) { APP.camera.x += moveSpeed; moved = true; }
+      if (moved) {
+        APP.camera.x = Math.max(-WORLD_W / 2, Math.min(WORLD_W / 2, APP.camera.x));
+        APP.camera.y = Math.max(-WORLD_H / 2, Math.min(WORLD_H / 2, APP.camera.y));
+        autoScanCenterReticle();
+      }
+
+      const curLat = (10.3988 - APP.camera.y * 0.0000045).toFixed(5);
+      const curLng = (-73.2297 + APP.camera.x * 0.0000045).toFixed(5);
+      document.getElementById('gpsLatText').textContent = `GPS: ${curLat}° N`;
+      document.getElementById('gpsLngText').textContent = `${curLng}° W`;
+
+      const cw = window.innerWidth;
+      const ch = window.innerHeight;
+      ctx.clearRect(0, 0, cw, ch);
+
+      if (APP.terrainCanvas) {
+        ctx.save();
+        ctx.globalAlpha = APP.arCameraActive ? 0.2 : 1.0;
+        const topLeft = worldToScreen(-WORLD_W / 2, -WORLD_H / 2, 0);
+        const botRight = worldToScreen(WORLD_W / 2, WORLD_H / 2, 0);
+        ctx.drawImage(
+          APP.terrainCanvas,
+          topLeft.x,
+          topLeft.y,
+          botRight.x - topLeft.x,
+          botRight.y - topLeft.y
+        );
+        ctx.restore();
+      }
+
+      drawRiverAndPathsHologram(timeSec);
+
+      const sorted = [...APP.buildings].sort((a, b) => a.y - b.y);
+      sorted.forEach(b => {
+        draw3DSkeletonBuilding(b, b.id === APP.selectedId, timeSec);
+      });
+
+      drawTelemetryAndReticle(timeSec);
+      drawMinimapRadar();
+    }
+
+    function setupEvents() {
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      canvas.addEventListener('pointerdown', (e) => {
+        APP.interaction.lastX = e.clientX;
+        APP.interaction.lastY = e.clientY;
+        APP.interaction.movedDist = 0;
+
+        const hitBld = findBuildingAtScreenPos(e.clientX, e.clientY);
+        if (APP.interaction.moveBuildingsMode && hitBld) {
+          APP.interaction.draggingBuildingId = hitBld.id;
+          selectBuilding(hitBld.id, false);
+        } else {
+          APP.interaction.isDraggingMap = true;
+        }
+        canvas.setPointerCapture(e.pointerId);
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        const dx = e.clientX - APP.interaction.lastX;
+        const dy = e.clientY - APP.interaction.lastY;
+        APP.interaction.lastX = e.clientX;
+        APP.interaction.lastY = e.clientY;
+        APP.interaction.movedDist += Math.abs(dx) + Math.abs(dy);
+
+        if (APP.interaction.draggingBuildingId) {
+          const b = APP.buildings.find(item => item.id === APP.interaction.draggingBuildingId);
+          if (b) {
+            b.x += dx / APP.camera.zoom;
+            b.y += dy / (APP.camera.zoom * APP.camera.pitch);
+          }
+          return;
+        }
+
+        if (APP.interaction.isDraggingMap) {
+          APP.camera.x -= dx / APP.camera.zoom;
+          APP.camera.y -= dy / (APP.camera.zoom * APP.camera.pitch);
+          APP.camera.x = Math.max(-WORLD_W / 2, Math.min(WORLD_W / 2, APP.camera.x));
+          APP.camera.y = Math.max(-WORLD_H / 2, Math.min(WORLD_H / 2, APP.camera.y));
+          autoScanCenterReticle();
+        }
+      });
+
+      canvas.addEventListener('pointerup', (e) => {
+        if (APP.interaction.draggingBuildingId) {
+          saveBuildings();
+          showToast('Ubicación de la instalación guardada');
+        } else if (APP.interaction.movedDist < 6) {
+          const hit = findBuildingAtScreenPos(e.clientX, e.clientY);
+          if (hit) selectBuilding(hit.id, true);
+        }
+        APP.interaction.isDraggingMap = false;
+        APP.interaction.draggingBuildingId = null;
+      });
+
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.12 : 0.89;
+        APP.camera.zoom = Math.max(0.28, Math.min(2.2, APP.camera.zoom * factor));
+        updateZoomBarUI();
+      }, { passive: false });
+
+      const jumpFromMinimap = (e) => {
+        const rect = miniCanvas.getBoundingClientRect();
+        const rx = (e.clientX - rect.left) / rect.width;
+        const ry = (e.clientY - rect.top) / rect.height;
+        APP.camera.x = (rx - 0.5) * WORLD_W;
+        APP.camera.y = (ry - 0.5) * WORLD_H;
+        autoScanCenterReticle();
+      };
+
+      miniCanvas.addEventListener('pointerdown', (e) => {
+        APP.interaction.isDraggingMinimap = true;
+        jumpFromMinimap(e);
+        miniCanvas.setPointerCapture(e.pointerId);
+      });
+      miniCanvas.addEventListener('pointermove', (e) => {
+        if (APP.interaction.isDraggingMinimap) jumpFromMinimap(e);
+      });
+      miniCanvas.addEventListener('pointerup', () => {
+        APP.interaction.isDraggingMinimap = false;
+      });
+
+      document.querySelectorAll('.sector-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          flyToSector(pill.dataset.sector);
+        });
+      });
+
+      document.querySelectorAll('.dpad-btn[data-dir]').forEach(btn => {
+        const dir = btn.dataset.dir;
+        const start = (ev) => { ev.preventDefault(); APP.interaction.keys[dir] = true; };
+        const end = (ev) => { ev.preventDefault(); APP.interaction.keys[dir] = false; };
+        btn.addEventListener('mousedown', start);
+        btn.addEventListener('mouseup', end);
+        btn.addEventListener('mouseleave', end);
+        btn.addEventListener('touchstart', start, { passive: false });
+        btn.addEventListener('touchend', end, { passive: false });
+      });
+
+      document.getElementById('btnCenterTarget').addEventListener('click', () => {
+        flyToSector('campus');
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') APP.interaction.keys.up = true;
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') APP.interaction.keys.down = true;
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') APP.interaction.keys.left = true;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') APP.interaction.keys.right = true;
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') APP.interaction.keys.up = false;
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') APP.interaction.keys.down = false;
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') APP.interaction.keys.left = false;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') APP.interaction.keys.right = false;
+      });
+
+      const btn3D = document.getElementById('btnToggle3D');
+      btn3D.addEventListener('click', () => {
+        APP.camera.is3D = !APP.camera.is3D;
+        APP.camera.pitch = APP.camera.is3D ? 0.78 : 1.0;
+        btn3D.classList.toggle('active', APP.camera.is3D);
+        document.getElementById('viewTiltLabel').textContent = APP.camera.is3D ? 'Perspectiva 3D' : 'Plano 2D';
+      });
+
+      const btnMove = document.getElementById('btnMoveBuildings');
+      btnMove.addEventListener('click', () => {
+        APP.interaction.moveBuildingsMode = !APP.interaction.moveBuildingsMode;
+        btnMove.classList.toggle('active', APP.interaction.moveBuildingsMode);
+        document.getElementById('moveBtnLabel').textContent = APP.interaction.moveBuildingsMode
+          ? 'Arrastrando Bloques'
+          : 'Mover Bloques';
+        showToast(
+          APP.interaction.moveBuildingsMode
+            ? 'Arrastra cualquier edificación o estanque para ajustar su posición'
+            : 'Posiciones bloqueadas'
+        );
+      });
+
+      const btnTour = document.getElementById('btnTour');
+      btnTour.addEventListener('click', () => {
+        APP.tourActive = !APP.tourActive;
+        btnTour.classList.toggle('active', APP.tourActive);
+        document.getElementById('tourBtnLabel').textContent = APP.tourActive
+          ? 'Detener Recorrido'
+          : `Recorrido Guiado (${APP.buildings.length} Zonas)`;
+        if (APP.tourActive) {
+          APP.tourIdx = 0;
+          selectBuilding(APP.buildings[0].id, true);
+          APP.tourTimer = setInterval(() => {
+            APP.tourIdx = (APP.tourIdx + 1) % APP.buildings.length;
+            const nextB = APP.buildings[APP.tourIdx];
+            selectBuilding(nextB.id, true);
+          }, 3200);
+        } else {
+          clearInterval(APP.tourTimer);
+        }
+      });
+
+      const btnCam = document.getElementById('btnCameraAR');
+      const shutterBar = document.getElementById('arShutterBar');
+      btnCam.addEventListener('click', async () => {
+        const videoEl = document.getElementById('arCameraVideo');
+        if (!APP.arCameraActive) {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: { ideal: 'environment' } },
+              audio: false
+            });
+            videoEl.srcObject = stream;
+            APP.videoStream = stream;
+            await videoEl.play();
+            videoEl.style.display = 'block';
+            APP.arCameraActive = true;
+            btnCam.classList.add('active');
+            shutterBar.classList.add('active');
+            document.getElementById('cameraBtnLabel').textContent = 'Cámara RA Activa';
+            updateInspectorCard();
+            showToast('Cámara RA Activa: Enfoca una edificación para ver su foto y descripción');
+          } catch (err) {
+            APP.arCameraActive = true;
+            btnCam.classList.add('active');
+            shutterBar.classList.add('active');
+            document.getElementById('cameraBtnLabel').textContent = 'Simulador RA Activo';
+            updateInspectorCard();
+            showToast('Modo RA Activo: Enfoca cualquier bloque con la mira (+) para ver su foto');
+          }
+        } else {
+          if (APP.videoStream) {
+            APP.videoStream.getTracks().forEach(t => t.stop());
+            APP.videoStream = null;
+          }
+          videoEl.style.display = 'none';
+          APP.arCameraActive = false;
+          btnCam.classList.remove('active');
+          shutterBar.classList.remove('active');
+          document.getElementById('cameraBtnLabel').textContent = 'Activar Cámara RA';
+          updateInspectorCard();
+        }
+      });
+
+      document.getElementById('btnPrevPhotoHud').addEventListener('click', () => {
+        const b = APP.buildings.find(item => item.id === APP.selectedId);
+        if (!b) return;
+        const photos = getBuildingPhotos(b);
+        const cur = APP.photoIndexMap[b.id] || 0;
+        APP.photoIndexMap[b.id] = (cur - 1 + photos.length) % photos.length;
+        updateInspectorCard();
+      });
+
+      document.getElementById('btnNextPhotoHud').addEventListener('click', () => {
+        const b = APP.buildings.find(item => item.id === APP.selectedId);
+        if (!b) return;
+        const photos = getBuildingPhotos(b);
+        const cur = APP.photoIndexMap[b.id] || 0;
+        APP.photoIndexMap[b.id] = (cur + 1) % photos.length;
+        updateInspectorCard();
+      });
+
+      document.getElementById('btnToggleReticleHud').addEventListener('click', () => {
+        APP.reticleHudMinimized = !APP.reticleHudMinimized;
+        document.getElementById('reticleHudBody').style.display = APP.reticleHudMinimized ? 'none' : 'block';
+        document.getElementById('btnToggleReticleHud').textContent = APP.reticleHudMinimized ? '+' : '_';
+      });
+
+      const quickPhotoInput = document.getElementById('quickPhotoInput');
+      let photoUploadTargetId = null;
+
+      const triggerPhotoFilePicker = (targetId) => {
+        photoUploadTargetId = targetId || APP.selectedId;
+        quickPhotoInput.value = '';
+        quickPhotoInput.click();
+      };
+
+      document.getElementById('btnQuickUploadPhoto').addEventListener('click', () => {
+        triggerPhotoFilePicker(APP.selectedId);
+      });
+      document.getElementById('btnQuickAddPhotoInspector').addEventListener('click', () => {
+        triggerPhotoFilePicker(APP.selectedId);
+      });
+      document.getElementById('btnModalUploadPhoto').addEventListener('click', () => {
+        triggerPhotoFilePicker(APP.editingId || APP.selectedId);
+      });
+
+      quickPhotoInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const compressed = compressImageToDataURL(img, 640, 380, 0.8);
+            addPhotoToBuilding(photoUploadTargetId || APP.selectedId, compressed);
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      const snapCurrentCameraFrameForBuilding = (targetId) => {
+        const bId = targetId || APP.selectedId;
+        const videoEl = document.getElementById('arCameraVideo');
+        if (APP.arCameraActive && APP.videoStream && videoEl.readyState >= 2) {
+          const captured = compressImageToDataURL(videoEl, 640, 380, 0.82);
+          addPhotoToBuilding(bId, captured);
+        } else {
+          const captured = compressImageToDataURL(canvas, 640, 380, 0.82);
+          addPhotoToBuilding(bId, captured);
+        }
+      };
+
+      document.getElementById('btnSnapARPhoto').addEventListener('click', () => {
+        snapCurrentCameraFrameForBuilding(APP.selectedId);
+      });
+      document.getElementById('btnModalCaptureAR').addEventListener('click', () => {
+        snapCurrentCameraFrameForBuilding(APP.editingId || APP.selectedId);
+      });
+
+      document.getElementById('btnAddPhotoUrl').addEventListener('click', () => {
+        const urlInput = document.getElementById('inputPhotoUrl');
+        const url = urlInput.value.trim();
+        if (!url) return;
+        addPhotoToBuilding(APP.editingId || APP.selectedId, url);
+        urlInput.value = '';
+      });
+
+      document.getElementById('btnQuickEditDesc').addEventListener('click', () => {
+        openEditModalFor(APP.selectedId);
+        setTimeout(() => document.getElementById('inputBldDesc').focus(), 90);
+      });
+
+      document.getElementById('btnHelpAR').addEventListener('click', () => {
+        document.getElementById('arHelpModal').classList.add('open');
+      });
+      document.getElementById('btnCloseArHelp').addEventListener('click', () => {
+        document.getElementById('arHelpModal').classList.remove('open');
+      });
+      document.getElementById('btnOkArHelp').addEventListener('click', () => {
+        document.getElementById('arHelpModal').classList.remove('open');
+      });
+
+      window.addEventListener('deviceorientation', (e) => {
+        if (!APP.arCameraActive || APP.interaction.isDraggingMap) return;
+        if (e.gamma !== null && e.beta !== null) {
+          APP.camera.x += (e.gamma * 0.08);
+          APP.camera.y += ((e.beta - 45) * 0.08);
+          APP.camera.x = Math.max(-WORLD_W / 2, Math.min(WORLD_W / 2, APP.camera.x));
+          APP.camera.y = Math.max(-WORLD_H / 2, Math.min(WORLD_H / 2, APP.camera.y));
+          autoScanCenterReticle();
+        }
+      });
+
+      const createNewBuildingHere = () => {
+        const newId = 'zona-cbc-' + Date.now();
+        const newBld = {
+          id: newId,
+          sector: APP.activeSector === 'all' ? 'campus' : APP.activeSector,
+          name: 'NUEVA INSTALACIÓN CBC',
+          icon: 'book',
+          color: '#00ff9d',
+          area: '650 m²',
+          status: 'Activo',
+          capacity: '80 personas',
+          desc: 'Nueva unidad registrada en el plano de Realidad Aumentada del SENA CBC.',
+          x: Math.round(APP.camera.x),
+          y: Math.round(APP.camera.y),
+          w: 92,
+          d: 74,
+          h: 40,
+          angle: -0.04,
+          roof: 'gable',
+          labelOffset: { dx: 0, dy: -75 },
+          alwaysDetails: false
+        };
+        APP.buildings.push(newBld);
+        saveBuildings();
+        rebuildDOMCallouts();
+        closeAllBuildingsModal();
+        selectBuilding(newId, true);
+        openEditModalFor(newId);
+      };
+
+      document.getElementById('btnQuickAdd').addEventListener('click', createNewBuildingHere);
+      document.getElementById('btnAddNewBuildingModal').addEventListener('click', createNewBuildingHere);
+
+      document.getElementById('btnOpenRenameCurrent').addEventListener('click', () => {
+        openEditModalFor(APP.selectedId);
+      });
+      document.getElementById('btnCloseEditModal').addEventListener('click', closeEditModal);
+      document.getElementById('btnCancelEdit').addEventListener('click', closeEditModal);
+      document.getElementById('btnSaveEdit').addEventListener('click', saveEditedBuilding);
+      document.getElementById('btnDeleteBuilding').addEventListener('click', deleteEditedBuilding);
+
+      document.querySelectorAll('#colorPresetsContainer .color-swatch').forEach(sw => {
+        sw.addEventListener('click', () => {
+          document.querySelectorAll('#colorPresetsContainer .color-swatch').forEach(s => s.classList.remove('selected'));
+          sw.classList.add('selected');
+        });
+      });
+
+      document.getElementById('btnAllNamesModal').addEventListener('click', openAllBuildingsModal);
+      document.getElementById('btnCloseAllModal').addEventListener('click', closeAllBuildingsModal);
+      document.getElementById('btnDoneAllModal').addEventListener('click', closeAllBuildingsModal);
+
+      document.getElementById('btnRestoreDefaults').addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        APP.buildings = JSON.parse(JSON.stringify(INITIAL_BUILDINGS));
+        rebuildDOMCallouts();
+        openAllBuildingsModal();
+        showToast('Se restauraron las 22 edificaciones y zonas originales del SENA CBC');
+      });
+
+      document.getElementById('btnExportJSON').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(APP.buildings, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'sena_cbc_edificaciones_ra.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Archivo JSON exportado');
+      });
+
+      const fileInput = document.getElementById('fileImportJSON');
+      document.getElementById('btnImportJSON').addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              APP.buildings = parsed;
+              saveBuildings();
+              rebuildDOMCallouts();
+              openAllBuildingsModal();
+              showToast('Plano JSON importado correctamente');
+            }
+          } catch (err) {
+            showToast('Archivo JSON inválido');
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    function openEditModalFor(id) {
+      const b = APP.buildings.find(item => item.id === id);
+      if (!b) return;
+      APP.editingId = id;
+
+      document.getElementById('inputBldName').value = b.name;
+      document.getElementById('inputBldSector').value = b.sector || 'campus';
+      document.getElementById('inputBldRoof').value = b.roof || 'gable';
+      document.getElementById('inputBldIcon').value = b.icon || 'book';
+      document.getElementById('inputBldStatus').value = b.status || 'Activo';
+      document.getElementById('inputBldArea').value = b.area || '';
+      document.getElementById('inputBldCap').value = b.capacity || '';
+      document.getElementById('inputBldDesc').value = b.desc || '';
+
+      document.querySelectorAll('#colorPresetsContainer .color-swatch').forEach(sw => {
+        sw.classList.toggle('selected', sw.dataset.color.toLowerCase() === (b.color || '').toLowerCase());
+      });
+
+      renderModalPhotosGrid(b);
+      document.getElementById('editModal').classList.add('open');
+      setTimeout(() => document.getElementById('inputBldName').focus(), 60);
+    }
+
+    function renderModalPhotosGrid(b) {
+      const grid = document.getElementById('modalPhotosGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      const photos = getBuildingPhotos(b);
+
+      photos.forEach((src, idx) => {
+        const item = document.createElement('div');
+        item.className = 'modal-photo-item';
+        item.innerHTML = `
+          <img src="${src}" alt="Foto ${idx + 1}" />
+          <button type="button" class="modal-photo-del" title="Eliminar esta foto">✕</button>
+        `;
+        item.querySelector('.modal-photo-del').addEventListener('click', () => {
+          if (!Array.isArray(b.photos)) {
+            b.photos = [...photos];
+          }
+          if (b.photos.length <= 1) {
+            showToast('Se conserva al menos 1 imagen de referencia para el lugar');
+            return;
+          }
+          b.photos.splice(idx, 1);
+          APP.photoIndexMap[b.id] = 0;
+          saveBuildings();
+          renderModalPhotosGrid(b);
+          rebuildDOMCallouts();
+          updateInspectorCard();
+        });
+        grid.appendChild(item);
+      });
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('open');
+      APP.editingId = null;
+    }
+
+    function saveEditedBuilding() {
+      const b = APP.buildings.find(item => item.id === APP.editingId);
+      if (!b) return;
+
+      const nameVal = document.getElementById('inputBldName').value.trim();
+      if (nameVal) b.name = nameVal;
+      b.sector = document.getElementById('inputBldSector').value;
+      b.roof = document.getElementById('inputBldRoof').value;
+      b.icon = document.getElementById('inputBldIcon').value;
+      b.status = document.getElementById('inputBldStatus').value;
+      b.area = document.getElementById('inputBldArea').value.trim() || b.area;
+      b.capacity = document.getElementById('inputBldCap').value.trim() || b.capacity;
+      b.desc = document.getElementById('inputBldDesc').value.trim() || b.desc;
+
+      const selectedSwatch = document.querySelector('#colorPresetsContainer .color-swatch.selected');
+      if (selectedSwatch) b.color = selectedSwatch.dataset.color;
+
+      saveBuildings();
+      rebuildDOMCallouts();
+      closeEditModal();
+      showToast(`"${b.name}" guardado`);
+    }
+
+    function deleteEditedBuilding() {
+      if (APP.buildings.length <= 1) return;
+      const idx = APP.buildings.findIndex(item => item.id === APP.editingId);
+      if (idx !== -1) {
+        const removed = APP.buildings.splice(idx, 1)[0];
+        APP.selectedId = APP.buildings[0].id;
+        saveBuildings();
+        rebuildDOMCallouts();
+        closeEditModal();
+        showToast(`"${removed.name}" eliminado`);
+      }
+    }
+
+    function openAllBuildingsModal() {
+      const container = document.getElementById('allBuildingsList');
+      container.innerHTML = '';
+
+      APP.buildings.forEach(b => {
+        const row = document.createElement('div');
+        row.className = 'buildings-list-item';
+        row.style.setProperty('--item-color', b.color);
+        row.innerHTML = `
+          <div>
+            <div style="font-size:12.5px; font-weight:700; color:#fff;">${escapeHTML(b.name)}</div>
+            <div style="font-size:10.5px; color:#94a3b8;">Área: ${escapeHTML(b.area)} | Cap.: ${escapeHTML(b.capacity)} | ${escapeHTML(b.status)}</div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="hud-btn btn-focus-bld" style="padding:4px 9px; font-size:11px;">Ir</button>
+            <button type="button" class="hud-btn btn-green btn-rename-bld" style="padding:4px 9px; font-size:11px;">Renombrar</button>
+          </div>
+        `;
+
+        row.querySelector('.btn-focus-bld').addEventListener('click', () => {
+          closeAllBuildingsModal();
+          selectBuilding(b.id, true);
+        });
+
+        row.querySelector('.btn-rename-bld').addEventListener('click', () => {
+          closeAllBuildingsModal();
+          selectBuilding(b.id, true);
+          openEditModalFor(b.id);
+        });
+
+        container.appendChild(row);
+      });
+
+      document.getElementById('allBuildingsModal').classList.add('open');
+    }
+
+    function closeAllBuildingsModal() {
+      document.getElementById('allBuildingsModal').classList.remove('open');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedBuildings();
+      buildFullEstateSatelliteCanvas();
+      rebuildDOMCallouts();
+      setupEvents();
+      requestAnimationFrame(renderLoop);
+    });
+  </script>
+</body>
+</html>
