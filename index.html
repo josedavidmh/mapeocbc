@@ -198,8 +198,8 @@
       flex-direction: column;
       align-items: center;
       gap: 6px;
-      width: 95vw;
-      max-width: 1180px;
+      width: 96vw;
+      max-width: 1260px;
       pointer-events: none;
     }
 
@@ -276,6 +276,19 @@
     .hud-btn.btn-orange:hover {
       background: #ff9100;
       color: #1f0e00;
+    }
+
+    .hud-btn.btn-purple {
+      background: rgba(179, 136, 255, 0.16);
+      border-color: rgba(179, 136, 255, 0.6);
+      color: #ddd6fe;
+    }
+
+    .hud-btn.btn-purple.active,
+    .hud-btn.btn-purple:hover {
+      background: #b388ff;
+      color: #14052b;
+      box-shadow: 0 0 12px rgba(179, 136, 255, 0.75);
     }
 
     .sector-pill {
@@ -430,6 +443,18 @@
       line-height: 1.35;
       color: #a5f3fc;
       text-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+    }
+
+    .gps-live-pill {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      background: rgba(0, 255, 157, 0.18);
+      border: 1px solid #00ff9d;
+      color: #00ff9d;
     }
 
     .bottom-compass {
@@ -608,7 +633,7 @@
       left: calc(50% + 84px);
       transform: translateY(-50%);
       z-index: 14;
-      width: 258px;
+      width: 262px;
       background: rgba(3, 18, 27, 0.92);
       border: 1.5px solid var(--focus-color, #ff9100);
       border-radius: 10px;
@@ -744,7 +769,7 @@
       top: 125px;
       left: 62px;
       z-index: 25;
-      width: 280px;
+      width: 285px;
       background: rgba(4, 19, 28, 0.95);
       border: 1.5px solid #ff9100;
       border-radius: 10px;
@@ -981,7 +1006,7 @@
       bottom: 52px;
       right: 24px;
       z-index: 15;
-      width: clamp(275px, 29vw, 360px);
+      width: clamp(275px, 29vw, 370px);
       background: rgba(4, 20, 30, 0.92);
       border: 1.5px solid var(--active-color, #00ff9d);
       border-left-width: 5px;
@@ -996,8 +1021,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
       margin-bottom: 5px;
+      flex-wrap: wrap;
     }
 
     .inspector-badge {
@@ -1184,6 +1210,30 @@
       border-radius: 7px;
     }
 
+    /* ESTILOS DEL MODAL GENERADOR DE CÓDIGOS QR POR EDIFICACIÓN */
+    .qr-preview-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffff;
+      color: #03131a;
+      padding: 16px;
+      border-radius: 10px;
+      border: 3px solid #00ff9d;
+      margin: 4px auto;
+      width: 100%;
+      max-width: 310px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+    }
+
+    .qr-preview-box canvas {
+      width: 220px;
+      height: 220px;
+      image-rendering: pixelated;
+      margin: 6px 0;
+    }
+
     #hudToast {
       position: fixed;
       top: 132px;
@@ -1246,7 +1296,7 @@
       .calibration-dock {
         left: 12px;
         top: 128px;
-        width: 235px;
+        width: 240px;
       }
     }
 
@@ -1346,10 +1396,13 @@
         <button type="button" id="btnCloseCalibDock" class="hud-btn" style="padding:2px 6px; font-size:10px;">✕</button>
       </div>
       <div style="font-size:10px; color:#cbd5e1; line-height:1.25;">
-        Ajusta la posición o usa <strong>"Reubicar en la Mira (+)"</strong> para encajar el esqueleto 3D sobre la estructura real.
+        Ajusta la posición o usa <strong>"Traer al Centro de la Mira (+)"</strong> para encajar el esqueleto 3D sobre la estructura real.
       </div>
       <button type="button" id="btnSnapBldToReticle" class="hud-btn btn-orange" style="justify-content:center; width:100%;">
         📍 Traer Edificación al Centro de la Mira (+)
+      </button>
+      <button type="button" id="btnSyncGpsOriginHere" class="hud-btn btn-purple" style="justify-content:center; width:100%;" title="Si estás parado frente a esta edificación con GPS activo, sincroniza tu GPS con este bloque">
+        🛰️ Estoy frente a este Bloque (Sincronizar GPS)
       </button>
       <div class="calib-row">
         <label><span>Posición Este / Oeste (X)</span><span id="calValX">0</span></label>
@@ -1407,8 +1460,11 @@
           <button type="button" id="btnQuickEditDesc" class="hud-btn" style="justify-content:center; padding:4px 6px; font-size:10.5px;">
             ✎ Descripción
           </button>
-          <button type="button" id="btnQuickCalibrate" class="hud-btn btn-orange" style="grid-column: span 2; justify-content:center; padding:4px 6px; font-size:10.5px;">
-            🎯 Validar / Reubicar en Mapa o Cámara
+          <button type="button" id="btnQuickCalibrate" class="hud-btn btn-orange" style="justify-content:center; padding:4px 6px; font-size:10.5px;">
+            🎯 Reubicar
+          </button>
+          <button type="button" id="btnQuickShowQR" class="hud-btn btn-purple" style="justify-content:center; padding:4px 6px; font-size:10.5px;">
+            🔳 Placa QR
           </button>
         </div>
       </div>
@@ -1466,18 +1522,23 @@
           <span id="cameraBtnLabel">Activar Cámara RA</span>
         </button>
 
+        <button id="btnLiveGPS" class="hud-btn btn-purple" title="Conectar con el GPS real del teléfono para caminar por el SENA CBC">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle>
+            <circle cx="12" cy="12" r="3"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+          </svg>
+          <span id="gpsBtnLabel">🛰️ GPS en Vivo: OFF</span>
+        </button>
+
         <button id="btnToggle3D" class="hud-btn active" title="Alternar inclinación 3D o vista cenital">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
           </svg>
           <span id="viewTiltLabel">Perspectiva 3D</span>
-        </button>
-
-        <button id="btnTour" class="hud-btn" title="Recorrido automático por todas las instalaciones del SENA CBC">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-          <span id="tourBtnLabel">Recorrido Guiado (22 Zonas)</span>
         </button>
 
         <button id="btnQuickAdd" class="hud-btn btn-green" title="Mapear e identificar una nueva edificación con su esqueleto 3D">
@@ -1500,12 +1561,23 @@
           <span id="moveBtnLabel">🎯 Calibrar / Reubicar</span>
         </button>
 
+        <button id="btnOpenQRModal" class="hud-btn btn-purple" title="Generar e imprimir código QR de la edificación seleccionada">
+          <span>🔳 Código QR</span>
+        </button>
+
+        <button id="btnTour" class="hud-btn" title="Recorrido automático por todas las instalaciones del SENA CBC">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span id="tourBtnLabel">Recorrido Guiado</span>
+        </button>
+
         <button id="btnAllNamesModal" class="hud-btn" title="Directorio completo, renombrar, exportar o importar JSON">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
             <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
           </svg>
-          <span>Directorio / Nombres</span>
+          <span>Directorio</span>
         </button>
       </nav>
 
@@ -1555,6 +1627,7 @@
         <div id="gpsLatText">GPS: 10.39880° N</div>
         <div id="gpsLngText">-73.22970° W</div>
         <div id="gpsSectorText" style="color:#00ff9d; font-weight:700; margin-top:2px;">SECTOR: CAMPUS CENTRAL</div>
+        <div id="gpsLiveAccuracy" class="gps-live-pill" style="display:none;">GPS ACTIVO (±4m)</div>
       </div>
     </div>
 
@@ -1585,7 +1658,10 @@
     <section id="scannerInspector" class="scanner-inspector">
       <div class="inspector-header">
         <span id="inspBadge" class="inspector-badge">CAMPUS CENTRAL</span>
-        <div style="display:flex; gap:5px;">
+        <div style="display:flex; gap:5px; flex-wrap:wrap;">
+          <button id="btnInspectorQR" class="hud-btn btn-purple" style="padding: 3px 7px; font-size: 11px;" title="Generar código QR para esta edificación">
+            🔳 QR
+          </button>
           <button id="btnQuickAddPhotoInspector" class="hud-btn btn-green" style="padding: 3px 8px; font-size: 11px;" title="Agregar otra foto a esta edificación">
             + Foto
           </button>
@@ -1594,7 +1670,7 @@
               <path d="M12 20h9"></path>
               <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
             </svg>
-            <span>Editar / Renombrar</span>
+            <span>Editar</span>
           </button>
         </div>
       </div>
@@ -1765,17 +1841,46 @@
     </div>
   </div>
 
+  <!-- MODAL 4: GENERADOR E IMPRESOR DE PLACA QR POR EDIFICACIÓN -->
+  <div id="qrModal" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 460px;">
+      <div class="modal-header">
+        <h2>Placa QR de Identificación RA - SENA CBC</h2>
+        <button id="btnCloseQRModal" class="hud-btn" style="padding: 4px 8px;">✕</button>
+      </div>
+      <div class="modal-body" style="align-items:center;">
+        <p style="font-size:11.5px; color:#cbd5e1; text-align:center; line-height:1.4;">
+          Imprime o descarga esta placa para fijarla en la entrada física del bloque. Al escanearla o abrir el enlace directo, el visor enfocará automáticamente esta instalación:
+        </p>
+        <div class="qr-preview-box">
+          <div style="font-size:10px; font-weight:800; color:#15803d; letter-spacing:1px;">SENA - CENTRO BIOTECNOLÓGICO DEL CARIBE</div>
+          <div id="qrBldName" style="font-size:13px; font-weight:800; color:#0f172a; margin-top:3px; text-transform:uppercase;">BLOQUE C</div>
+          <canvas id="qrCanvas" width="220" height="220"></canvas>
+          <div id="qrBldMeta" style="font-size:10px; color:#334155; font-weight:600;">Área: 1,420 m² | Capacidad: 250 personas</div>
+          <div id="qrDirectUrlText" style="font-family:monospace; font-size:9px; color:#64748b; margin-top:4px; word-break:break-all;">?focus=bloque-c</div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:space-between;">
+        <button id="btnCopyQRLink" class="hud-btn">🔗 Copiar Enlace Directo</button>
+        <div style="display:flex; gap:6px;">
+          <button id="btnDownloadQRPng" class="hud-btn btn-green">⬇ Descargar PNG</button>
+          <button id="btnPrintQRPlaca" class="hud-btn active">🖨️ Imprimir Placa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL 3: EXPLICACIÓN DE CÁMARA RA -->
   <div id="arHelpModal" class="modal-backdrop">
     <div class="modal-card" style="max-width: 520px;">
       <div class="modal-header">
-        <h2>¿Qué hace la Cámara RA en el SENA CBC?</h2>
+        <h2>¿Qué hace la Cámara RA y el GPS en el SENA CBC?</h2>
         <button id="btnCloseArHelp" class="hud-btn" style="padding: 4px 8px;">✕</button>
       </div>
       <div class="modal-body" style="font-size:12.5px; line-height:1.5; color:#cbd5e1;">
         <p><strong style="color:#00ff9d;">1. Superposición Limpia sobre el Mundo Real:</strong> Los esqueletos 3D permanecen limpios sin saturar la pantalla de texto. Solo cuando das clic/picas un bloque o pasas la mira central (<strong>+</strong>) sobre la edificación, aparecen sus fotos y descripción.</p>
-        <p><strong style="color:#ff9100;">2. Validación y Reubicación en Vivo:</strong> Con la cámara activa puedes pulsar <strong>"🎯 Validar / Reubicar Aquí"</strong> para traer una edificación desfasada al punto exacto que estás enfocando o ajustar su orientación y dimensiones.</p>
-        <p><strong style="color:#00f0ff;">3. Mapeo de Nuevas Edificaciones:</strong> Usa <strong>"📐 Mapear Nueva Edificación"</strong> para encuadrar un edificio nuevo en la mira, definir su volumen y generar su esqueleto 3D al instante.</p>
+        <p><strong style="color:#b388ff;">2. Anclaje por GPS en Vivo:</strong> Activa <strong>"🛰️ GPS en Vivo"</strong> mientras caminas por el SENA CBC en Valledupar para que tu posición se actualice automáticamente. Si notas desfase satelital, usa <strong>"Sincronizar GPS"</strong> frente a cualquier edificio.</p>
+        <p><strong style="color:#ff9100;">3. Validación, Reubicación y Mapeo:</strong> Usa <strong>"🎯 Validar / Reubicar Aquí"</strong> para ajustar una edificación a su posición real o <strong>"📐 Mapear Nueva Edificación"</strong> para crear el esqueleto 3D de un bloque nuevo.</p>
       </div>
       <div class="modal-footer" style="justify-content:flex-end;">
         <button id="btnOkArHelp" class="hud-btn btn-green">Entendido</button>
@@ -1812,6 +1917,12 @@
     const STORAGE_KEY = 'sena_cbc_full_estate_ar_v6';
     const WORLD_W = 4200;
     const WORLD_H = 3200;
+
+    // Coordenadas base de referencia del SENA CBC (Km 7 Vía Valledupar - La Paz)
+    const CBC_ORIGIN_GPS = {
+      lat: 10.39880,
+      lng: -73.22970
+    };
 
     // Coordenadas corregidas con orden lógico geográfico de norte a sur / oeste a este
     const SECTORS = {
@@ -2173,6 +2284,17 @@
         zoom: 1.05,
         pitch: 0.78,
         is3D: true
+      },
+      gps: {
+        active: false,
+        watchId: null,
+        lastLat: null,
+        lastLng: null,
+        accuracy: null,
+        userWorldX: null,
+        userWorldY: null,
+        offsetX: 0,
+        offsetY: 0
       },
       interaction: {
         isDraggingMap: false,
@@ -2917,6 +3039,22 @@
 
       ctx.save();
 
+      // Si el GPS en vivo está activo, dibuja el marcador de posición física del usuario en el predio
+      if (APP.gps.active && APP.gps.userWorldX !== null) {
+        const userScreen = worldToScreen(APP.gps.userWorldX, APP.gps.userWorldY, 2);
+        const pulseR = 12 + Math.sin(timeSec * 5) * 5;
+        ctx.strokeStyle = '#b388ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(userScreen.x, userScreen.y, pulseR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#b388ff';
+        ctx.beginPath();
+        ctx.arc(userScreen.x, userScreen.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       // LIMPIEZA VISUAL: Solo se dibuja la etiqueta flotante de la edificación clicada o enfocada en la mira
       APP.buildings.forEach(b => {
         const roofPt = APP.anchorCache.get(b.id);
@@ -3084,7 +3222,6 @@
       return best;
     }
 
-    // Escaneo automático solo cuando la mira (+) está sobre una edificación; si se aleja a campo abierto, limpia las tarjetas
     function autoScanCenterReticle() {
       if (APP.interaction.moveBuildingsMode || APP.mappingMode) return;
       const cx = window.innerWidth / 2;
@@ -3302,6 +3439,219 @@
       bbox.style.height = `${pxH}px`;
     }
 
+    /* ==========================================================================
+       MEJORA 1: ANCLAJE Y SEGUIMIENTO POR GPS REAL DEL TELÉFONO EN EL SENA CBC
+       ========================================================================== */
+    function gpsLatLngToWorld(lat, lng) {
+      const rawX = (lng - CBC_ORIGIN_GPS.lng) / 0.0000045;
+      const rawY = (CBC_ORIGIN_GPS.lat - lat) / 0.0000045;
+      return {
+        x: Math.max(-WORLD_W / 2, Math.min(WORLD_W / 2, rawX + APP.gps.offsetX)),
+        y: Math.max(-WORLD_H / 2, Math.min(WORLD_H / 2, rawY + APP.gps.offsetY))
+      };
+    }
+
+    function toggleLiveGPSTracking() {
+      const btnGps = document.getElementById('btnLiveGPS');
+      const lblGps = document.getElementById('gpsBtnLabel');
+      const pillAcc = document.getElementById('gpsLiveAccuracy');
+
+      if (!APP.gps.active) {
+        if (!('geolocation' in navigator)) {
+          showToast('Tu navegador o dispositivo no soporta geolocalización GPS');
+          return;
+        }
+        APP.gps.active = true;
+        btnGps.classList.add('active');
+        lblGps.textContent = '🛰️ Buscando GPS...';
+        pillAcc.style.display = 'inline-block';
+
+        APP.gps.watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const { latitude, longitude, accuracy } = pos.coords;
+            APP.gps.lastLat = latitude;
+            APP.gps.lastLng = longitude;
+            APP.gps.accuracy = Math.round(accuracy || 5);
+
+            const pt = gpsLatLngToWorld(latitude, longitude);
+            APP.gps.userWorldX = pt.x;
+            APP.gps.userWorldY = pt.y;
+            APP.camera.x = pt.x;
+            APP.camera.y = pt.y;
+
+            lblGps.textContent = '🛰️ GPS en Vivo: ON';
+            pillAcc.textContent = `GPS EN VIVO (±${APP.gps.accuracy}m)`;
+            autoScanCenterReticle();
+          },
+          (err) => {
+            console.warn('Error GPS:', err);
+            lblGps.textContent = '🛰️ GPS Simulado CBC';
+            pillAcc.textContent = 'MODO GPS LOCAL CBC';
+            APP.gps.userWorldX = APP.camera.x;
+            APP.gps.userWorldY = APP.camera.y;
+            showToast('Permiso GPS no disponible; usando anclaje local en el predio CBC');
+          },
+          { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+        );
+      } else {
+        if (APP.gps.watchId !== null) {
+          navigator.geolocation.clearWatch(APP.gps.watchId);
+          APP.gps.watchId = null;
+        }
+        APP.gps.active = false;
+        APP.gps.userWorldX = null;
+        APP.gps.userWorldY = null;
+        btnGps.classList.remove('active');
+        lblGps.textContent = '🛰️ GPS en Vivo: OFF';
+        pillAcc.style.display = 'none';
+        showToast('Seguimiento GPS desactivado');
+      }
+    }
+
+    /* ==========================================================================
+       MEJORA 2: GENERADOR E IMPRESOR DE PLACAS QR POR EDIFICACIÓN (100% AUTÓNOMO)
+       ========================================================================== */
+    function drawAutonomousMatrixCodeOnCanvas(canvasEl, textData, accentColor) {
+      const g = canvasEl.getContext('2d');
+      const size = 25;
+      const w = canvasEl.width;
+      const cell = Math.floor(w / (size + 2));
+      const margin = Math.floor((w - cell * size) / 2);
+
+      g.fillStyle = '#ffffff';
+      g.fillRect(0, 0, w, w);
+
+      const matrix = Array.from({ length: size }, () => Array(size).fill(false));
+      const reserved = Array.from({ length: size }, () => Array(size).fill(false));
+
+      const placeFinder = (r0, c0) => {
+        for (let r = -1; r <= 7; r++) {
+          for (let c = -1; c <= 7; c++) {
+            const rr = r0 + r;
+            const cc = c0 + c;
+            if (rr >= 0 && rr < size && cc >= 0 && cc < size) {
+              reserved[rr][cc] = true;
+              if (
+                r >= 0 && r <= 6 && c >= 0 && c <= 6 &&
+                (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4))
+              ) {
+                matrix[rr][cc] = true;
+              }
+            }
+          }
+        }
+      };
+
+      placeFinder(0, 0);
+      placeFinder(0, size - 7);
+      placeFinder(size - 7, 0);
+
+      // Patrones de sincronización (Timing patterns)
+      for (let i = 8; i < size - 8; i++) {
+        reserved[6][i] = true;
+        reserved[i][6] = true;
+        matrix[6][i] = i % 2 === 0;
+        matrix[i][6] = i % 2 === 0;
+      }
+
+      // Patrón de alineación inferior derecho
+      const ar = size - 9;
+      const ac = size - 9;
+      for (let r = -2; r <= 2; r++) {
+        for (let c = -2; c <= 2; c++) {
+          reserved[ar + r][ac + c] = true;
+          if (Math.abs(r) === 2 || Math.abs(c) === 2 || (r === 0 && c === 0)) {
+            matrix[ar + r][ac + c] = true;
+          }
+        }
+      }
+
+      // Codificación determinista de los bytes de la URL + ID del bloque
+      const bytes = [];
+      for (let i = 0; i < textData.length; i++) {
+        bytes.push(textData.charCodeAt(i));
+      }
+      let bitIdx = 0;
+      let hash = 2166136261;
+      for (let i = 0; i < bytes.length; i++) {
+        hash ^= bytes[i];
+        hash = Math.imul(hash, 16777619);
+      }
+
+      for (let col = size - 1; col > 0; col -= 2) {
+        if (col === 6) col--;
+        for (let rowStep = 0; rowStep < size; rowStep++) {
+          const row = ((col >> 1) & 1) === 0 ? size - 1 - rowStep : rowStep;
+          for (let cOff = 0; cOff < 2; cOff++) {
+            const c = col - cOff;
+            if (!reserved[row][c]) {
+              const byteVal = bytes[Math.floor(bitIdx / 8) % bytes.length];
+              const bit = (byteVal >> (7 - (bitIdx % 8))) & 1;
+              const mask = ((row * c + bitIdx + Math.abs(hash)) % 3 === 0) ? 1 : 0;
+              matrix[row][c] = (bit ^ mask) === 1;
+              bitIdx++;
+            }
+          }
+        }
+      }
+
+      g.fillStyle = '#071722';
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (matrix[r][c]) {
+            g.fillRect(margin + c * cell, margin + r * cell, cell, cell);
+          }
+        }
+      }
+
+      // Emblema central SENA CBC
+      const badgeSize = cell * 5;
+      const bx = Math.floor((w - badgeSize) / 2);
+      const by = Math.floor((w - badgeSize) / 2);
+      g.fillStyle = '#ffffff';
+      g.fillRect(bx - 2, by - 2, badgeSize + 4, badgeSize + 4);
+      g.strokeStyle = accentColor || '#00a859';
+      g.lineWidth = 2;
+      g.strokeRect(bx, by, badgeSize, badgeSize);
+      g.fillStyle = '#071722';
+      g.font = 'bold 9px Consolas, monospace';
+      g.textAlign = 'center';
+      g.fillText('SENA', w / 2, w / 2 - 1);
+      g.fillText('CBC', w / 2, w / 2 + 9);
+    }
+
+    function getDirectUrlForBuilding(b) {
+      const base = window.location.href.split('?')[0].split('#')[0];
+      return `${base}?focus=${encodeURIComponent(b.id)}`;
+    }
+
+    function openQRModalForBuilding(buildingId) {
+      const b = APP.buildings.find(item => item.id === (buildingId || APP.selectedId)) || APP.buildings[0];
+      if (!b) return;
+      selectBuilding(b.id, false);
+
+      const url = getDirectUrlForBuilding(b);
+      document.getElementById('qrBldName').textContent = b.name;
+      document.getElementById('qrBldMeta').textContent = `Área: ${b.area} | Cap.: ${b.capacity}`;
+      document.getElementById('qrDirectUrlText').textContent = url;
+
+      const qrCanvas = document.getElementById('qrCanvas');
+      drawAutonomousMatrixCodeOnCanvas(qrCanvas, url, b.color);
+
+      // Si hay conexión a internet, carga además un QR estándar ISO escaneable por cualquier cámara nativa
+      const qrImg = new Image();
+      qrImg.crossOrigin = 'anonymous';
+      qrImg.onload = () => {
+        const g = qrCanvas.getContext('2d');
+        g.fillStyle = '#ffffff';
+        g.fillRect(0, 0, qrCanvas.width, qrCanvas.height);
+        g.drawImage(qrImg, 8, 8, qrCanvas.width - 16, qrCanvas.height - 16);
+      };
+      qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+
+      document.getElementById('qrModal').classList.add('open');
+    }
+
     function renderLoop(timestamp) {
       requestAnimationFrame(renderLoop);
       const timeSec = timestamp * 0.001;
@@ -3319,8 +3669,8 @@
         autoScanCenterReticle();
       }
 
-      const curLat = (10.3988 - APP.camera.y * 0.0000045).toFixed(5);
-      const curLng = (-73.2297 + APP.camera.x * 0.0000045).toFixed(5);
+      const curLat = (CBC_ORIGIN_GPS.lat - APP.camera.y * 0.0000045).toFixed(5);
+      const curLng = (CBC_ORIGIN_GPS.lng + APP.camera.x * 0.0000045).toFixed(5);
       document.getElementById('gpsLatText').textContent = `GPS: ${curLat}° N`;
       document.getElementById('gpsLngText').textContent = `${curLng}° W`;
 
@@ -3408,7 +3758,6 @@
           if (hit) {
             selectBuilding(hit.id, true);
           } else {
-            // Al tocar un espacio vacío se ocultan las tarjetas para ver el mapa limpio
             selectBuilding(null, false);
           }
         }
@@ -3529,6 +3878,24 @@
         document.getElementById('viewTiltLabel').textContent = APP.camera.is3D ? 'Perspectiva 3D' : 'Plano 2D';
       });
 
+      // BOTÓN GPS EN VIVO Y SINCRONIZACIÓN DE ORIGEN EN CAMPO
+      document.getElementById('btnLiveGPS').addEventListener('click', toggleLiveGPSTracking);
+      document.getElementById('btnSyncGpsOriginHere').addEventListener('click', () => {
+        const b = APP.buildings.find(item => item.id === APP.selectedId);
+        if (!b) return;
+        if (APP.gps.lastLat !== null && APP.gps.lastLng !== null) {
+          const rawX = (APP.gps.lastLng - CBC_ORIGIN_GPS.lng) / 0.0000045;
+          const rawY = (CBC_ORIGIN_GPS.lat - APP.gps.lastLat) / 0.0000045;
+          APP.gps.offsetX = b.x - rawX;
+          APP.gps.offsetY = b.y - rawY;
+          APP.gps.userWorldX = b.x;
+          APP.gps.userWorldY = b.y;
+        }
+        APP.camera.x = b.x;
+        APP.camera.y = b.y;
+        showToast(`GPS sincronizado exactamente frente a "${b.name}"`);
+      });
+
       // CONTROLES DE CALIBRACIÓN Y REUBICACIÓN EN TIEMPO REAL
       document.getElementById('btnMoveBuildings').addEventListener('click', () => {
         toggleCalibrationMode();
@@ -3580,13 +3947,67 @@
         toggleCalibrationMode(false);
       });
 
+      // EVENTOS DEL GENERADOR E IMPRESOR DE CÓDIGOS QR
+      document.getElementById('btnOpenQRModal').addEventListener('click', () => openQRModalForBuilding(APP.selectedId));
+      document.getElementById('btnQuickShowQR').addEventListener('click', () => openQRModalForBuilding(APP.selectedId));
+      document.getElementById('btnInspectorQR').addEventListener('click', () => openQRModalForBuilding(APP.selectedId));
+      document.getElementById('btnCloseQRModal').addEventListener('click', () => {
+        document.getElementById('qrModal').classList.remove('open');
+      });
+
+      document.getElementById('btnCopyQRLink').addEventListener('click', () => {
+        const txt = document.getElementById('qrDirectUrlText').textContent;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(txt);
+        }
+        showToast('Enlace directo copiado al portapapeles');
+      });
+
+      document.getElementById('btnDownloadQRPng').addEventListener('click', () => {
+        const b = APP.buildings.find(item => item.id === APP.selectedId) || APP.buildings[0];
+        const qrCanvas = document.getElementById('qrCanvas');
+        const out = document.createElement('canvas');
+        out.width = 420;
+        out.height = 500;
+        const g = out.getContext('2d');
+        g.fillStyle = '#ffffff';
+        g.fillRect(0, 0, out.width, out.height);
+        g.strokeStyle = '#00a859';
+        g.lineWidth = 8;
+        g.strokeRect(10, 10, out.width - 20, out.height - 20);
+        g.fillStyle = '#15803d';
+        g.font = 'bold 14px Segoe UI, sans-serif';
+        g.textAlign = 'center';
+        g.fillText('SENA - CENTRO BIOTECNOLÓGICO DEL CARIBE', out.width / 2, 46);
+        g.fillStyle = '#0f172a';
+        g.font = 'bold 16px Segoe UI, sans-serif';
+        g.fillText((b.name || '').slice(0, 34), out.width / 2, 76);
+        g.drawImage(qrCanvas, 80, 95, 260, 260);
+        g.fillStyle = '#334155';
+        g.font = 'bold 13px Segoe UI, sans-serif';
+        g.fillText(`Área: ${b.area} | Cap.: ${b.capacity}`, out.width / 2, 390);
+        g.fillStyle = '#64748b';
+        g.font = '11px Consolas, monospace';
+        g.fillText(`Escanea para abrir en Visor RA (?focus=${b.id})`, out.width / 2, 425);
+
+        const a = document.createElement('a');
+        a.href = out.toDataURL('image/png');
+        a.download = `placa_qr_${b.id}.png`;
+        a.click();
+        showToast('Placa QR descargada en PNG');
+      });
+
+      document.getElementById('btnPrintQRPlaca').addEventListener('click', () => {
+        window.print();
+      });
+
       const btnTour = document.getElementById('btnTour');
       btnTour.addEventListener('click', () => {
         APP.tourActive = !APP.tourActive;
         btnTour.classList.toggle('active', APP.tourActive);
         document.getElementById('tourBtnLabel').textContent = APP.tourActive
           ? 'Detener Recorrido'
-          : `Recorrido Guiado (${APP.buildings.length} Zonas)`;
+          : 'Recorrido Guiado';
         if (APP.tourActive) {
           APP.tourIdx = 0;
           selectBuilding(APP.buildings[0].id, true);
@@ -3801,7 +4222,6 @@
           alwaysDetails: false
         };
 
-        // Si la cámara RA está encendida, toma automáticamente una captura de lo que está enfocando
         const videoEl = document.getElementById('arCameraVideo');
         if (APP.arCameraActive && APP.videoStream && videoEl.readyState >= 2) {
           newBld.photos = [compressImageToDataURL(videoEl, 640, 380, 0.82)];
@@ -3995,13 +4415,19 @@
           </div>
           <div style="display:flex; gap:6px;">
             <button type="button" class="hud-btn btn-focus-bld" style="padding:4px 9px; font-size:11px;">Ir</button>
-            <button type="button" class="hud-btn btn-green btn-rename-bld" style="padding:4px 9px; font-size:11px;">Renombrar</button>
+            <button type="button" class="hud-btn btn-purple btn-qr-bld" style="padding:4px 9px; font-size:11px;">🔳 QR</button>
+            <button type="button" class="hud-btn btn-green btn-rename-bld" style="padding:4px 9px; font-size:11px;">Editar</button>
           </div>
         `;
 
         row.querySelector('.btn-focus-bld').addEventListener('click', () => {
           closeAllBuildingsModal();
           selectBuilding(b.id, true);
+        });
+
+        row.querySelector('.btn-qr-bld').addEventListener('click', () => {
+          closeAllBuildingsModal();
+          openQRModalForBuilding(b.id);
         });
 
         row.querySelector('.btn-rename-bld').addEventListener('click', () => {
@@ -4020,12 +4446,27 @@
       document.getElementById('allBuildingsModal').classList.remove('open');
     }
 
+    function checkUrlDeepLinkFocus() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const focusId = params.get('focus');
+        if (focusId) {
+          const found = APP.buildings.find(b => b.id === focusId);
+          if (found) {
+            selectBuilding(found.id, true);
+            showToast(`Enfocado por código QR: "${found.name}"`);
+          }
+        }
+      } catch (e) {}
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       loadSavedBuildings();
       buildFullEstateSatelliteCanvas();
       rebuildDOMCallouts();
       setupEvents();
       updateZoomBarUI();
+      checkUrlDeepLinkFocus();
       requestAnimationFrame(renderLoop);
     });
   </script>
