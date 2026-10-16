@@ -199,7 +199,7 @@
       align-items: center;
       gap: 6px;
       width: 95vw;
-      max-width: 1120px;
+      max-width: 1180px;
       pointer-events: none;
     }
 
@@ -318,12 +318,13 @@
       background: #02131a;
     }
 
+    /* CONTROLES DE ZOOM INTERACTIVOS EN LA BARRA IZQUIERDA */
     .left-scale-bar {
       position: absolute;
       left: 20px;
-      top: 44%;
+      top: 46%;
       transform: translateY(-50%);
-      z-index: 8;
+      z-index: 15;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -331,24 +332,58 @@
       pointer-events: auto;
     }
 
+    .zoom-step-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: rgba(4, 22, 34, 0.88);
+      border: 1.5px solid rgba(0, 240, 255, 0.6);
+      color: #00f0ff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+      transition: all 0.15s;
+    }
+
+    .zoom-step-btn:hover,
+    .zoom-step-btn:active {
+      background: #00f0ff;
+      color: #02131a;
+    }
+
     .scale-track {
-      width: 10px;
-      height: 165px;
+      width: 12px;
+      height: 150px;
       border: 1.5px solid rgba(165, 243, 252, 0.7);
-      border-radius: 4px;
+      border-radius: 6px;
       padding: 2px;
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      background: rgba(3, 18, 28, 0.65);
+      background: rgba(3, 18, 28, 0.75);
+      cursor: ns-resize;
     }
 
     .scale-fill {
       width: 100%;
       height: 55%;
       background: linear-gradient(180deg, #00f0ff, #00ff9d);
-      border-radius: 2px;
-      transition: height 0.15s ease;
+      border-radius: 3px;
+      transition: height 0.12s ease;
+    }
+
+    .zoom-pct-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: #a5f3fc;
+      background: rgba(3, 18, 28, 0.8);
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 240, 255, 0.3);
     }
 
     .right-ruler {
@@ -456,6 +491,7 @@
       overflow: hidden;
     }
 
+    /* LIMPIEZA VISUAL: las etiquetas flotantes solo se muestran para la edificación enfocada/seleccionada */
     .building-callout {
       position: absolute;
       top: 0;
@@ -463,24 +499,22 @@
       transform: translate(-50%, -100%);
       pointer-events: auto;
       cursor: pointer;
-      display: flex;
+      display: none;
       align-items: center;
       gap: 8px;
       padding: 6px 10px;
       border-radius: 7px;
-      background: rgba(5, 22, 32, 0.88);
+      background: rgba(5, 22, 32, 0.92);
       border: 1.5px solid var(--card-color, #00ff9d);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.78), 0 0 12px rgba(0, 240, 255, 0.18);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.92), 0 0 20px var(--card-color, #00ff9d);
       backdrop-filter: blur(5px);
       transition: box-shadow 0.15s ease, background 0.15s ease, opacity 0.15s ease;
-      max-width: 255px;
+      max-width: 265px;
+      z-index: 30;
     }
 
-    .building-callout:hover,
     .building-callout.is-active {
-      background: rgba(8, 36, 50, 0.96);
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.92), 0 0 20px var(--card-color, #00ff9d);
-      z-index: 30 !important;
+      display: flex;
     }
 
     .callout-icon {
@@ -519,16 +553,11 @@
       margin-top: 3px;
       border-top: 1px solid rgba(255, 255, 255, 0.14);
       padding-top: 3px;
-      display: none;
-    }
-
-    .building-callout.is-active .callout-meta,
-    .building-callout.always-details .callout-meta {
       display: block;
     }
 
     .callout-thumb-wrap {
-      display: none;
+      display: block;
       margin-top: 5px;
       border-radius: 5px;
       overflow: hidden;
@@ -539,10 +568,6 @@
       background: #021017;
     }
 
-    .building-callout.is-active .callout-thumb-wrap {
-      display: block;
-    }
-
     .callout-thumb-img {
       width: 100%;
       height: 100%;
@@ -551,16 +576,12 @@
     }
 
     .callout-desc-preview {
-      display: none;
+      display: block;
       font-size: 9.8px;
       color: #a5f3fc;
       margin-top: 4px;
       line-height: 1.25;
-      max-width: 210px;
-    }
-
-    .building-callout.is-active .callout-desc-preview {
-      display: block;
+      max-width: 215px;
     }
 
     .callout-edit-btn {
@@ -580,14 +601,14 @@
       color: #021017;
     }
 
-    /* VISOR HOLOGRÁFICO EN TIEMPO REAL AL PASAR LA CÁMARA O MIRA (+) POR EL LUGAR */
+    /* VISOR HOLOGRÁFICO EN TIEMPO REAL (SOLO APARECE AL DAR CLIC / PICAR O ENFOCAR LA MIRA SOBRE EDIFICACIÓN) */
     .reticle-photo-hud {
       position: absolute;
       top: 50%;
       left: calc(50% + 84px);
       transform: translateY(-50%);
       z-index: 14;
-      width: 250px;
+      width: 258px;
       background: rgba(3, 18, 27, 0.92);
       border: 1.5px solid var(--focus-color, #ff9100);
       border-radius: 10px;
@@ -596,6 +617,13 @@
       backdrop-filter: blur(8px);
       pointer-events: auto;
       transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .reticle-photo-hud.is-hidden,
+    .scanner-inspector.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(14px);
     }
 
     .reticle-photo-hud::before {
@@ -710,6 +738,108 @@
       margin-top: 7px;
     }
 
+    /* PANEL FLOTANTE DE CALIBRACIÓN Y VALIDACIÓN EN CÁMARA RA */
+    .calibration-dock {
+      position: absolute;
+      top: 125px;
+      left: 62px;
+      z-index: 25;
+      width: 280px;
+      background: rgba(4, 19, 28, 0.95);
+      border: 1.5px solid #ff9100;
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.85), 0 0 16px rgba(255, 145, 0, 0.3);
+      backdrop-filter: blur(8px);
+      display: none;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .calibration-dock.open {
+      display: flex;
+    }
+
+    .calib-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .calib-row label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #fdba74;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .calib-row input[type="range"] {
+      width: 100%;
+      accent-color: #ff9100;
+      cursor: pointer;
+    }
+
+    /* MARCO INTERACTIVO DE ESCANEO Y MAPEO DE NUEVA EDIFICACIÓN */
+    .mapping-scanner-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 24;
+      pointer-events: none;
+      display: none;
+    }
+
+    .mapping-scanner-overlay.active {
+      display: block;
+    }
+
+    .mapping-bbox {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 240px;
+      height: 160px;
+      transform: translate(-50%, -50%);
+      border: 2.5px dashed #00ff9d;
+      background: rgba(0, 255, 157, 0.12);
+      box-shadow: 0 0 25px rgba(0, 255, 157, 0.4) inset, 0 0 20px rgba(0, 255, 157, 0.45);
+      border-radius: 6px;
+    }
+
+    .mapping-bbox-label {
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00ff9d;
+      color: #021a11;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+      letter-spacing: 0.5px;
+    }
+
+    .mapping-controls-card {
+      position: absolute;
+      bottom: 92px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: auto;
+      background: rgba(3, 19, 28, 0.95);
+      border: 1.5px solid #00ff9d;
+      border-radius: 10px;
+      padding: 10px 14px;
+      width: clamp(290px, 90vw, 460px);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+    }
+
     .modal-photos-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -759,10 +889,12 @@
       z-index: 20;
       display: none;
       align-items: center;
-      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 7px;
       padding: 6px 12px;
       border-radius: 999px;
-      background: rgba(3, 20, 30, 0.92);
+      background: rgba(3, 20, 30, 0.94);
       border: 1.5px solid #00ff9d;
       box-shadow: 0 0 22px rgba(0, 255, 157, 0.45);
     }
@@ -857,6 +989,7 @@
       padding: 11px 13px;
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.78);
+      transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
     .inspector-header {
@@ -1090,8 +1223,15 @@
         left: 12px;
         bottom: 46px;
       }
-      .right-ruler, .left-scale-bar {
+      .right-ruler {
         display: none;
+      }
+      .left-scale-bar {
+        left: 10px;
+        top: 52%;
+      }
+      .scale-track {
+        height: 105px;
       }
       .reticle-photo-hud {
         top: 128px;
@@ -1102,6 +1242,11 @@
       }
       .reticle-photo-hud::before {
         display: none;
+      }
+      .calibration-dock {
+        left: 12px;
+        top: 128px;
+        width: 235px;
       }
     }
 
@@ -1116,7 +1261,7 @@
       }
       .building-callout {
         padding: 4px 7px;
-        max-width: 175px;
+        max-width: 185px;
       }
       .callout-title {
         font-size: 9.5px;
@@ -1140,14 +1285,109 @@
     <!-- Lienzo principal 2.5D / 3D del predio completo -->
     <canvas id="arCanvas"></canvas>
 
-    <!-- Capa de etiquetas flotantes -->
+    <!-- Capa de etiquetas flotantes (solo aparece para el edificio clicado o enfocado) -->
     <div id="labelsLayer"></div>
 
-    <!-- VISOR HOLOGRÁFICO AUTOMÁTICO EN TIEMPO REAL AL PASAR LA CÁMARA O MIRA (+) -->
+    <!-- MARCO INTERACTIVO DE MAPEO PARA IDENTIFICAR Y CREAR UNA NUEVA EDIFICACIÓN -->
+    <div id="mappingScannerOverlay" class="mapping-scanner-overlay">
+      <div id="mappingBbox" class="mapping-bbox">
+        <div class="mapping-bbox-label">ENCUADRA LA NUEVA EDIFICACIÓN EN LA MIRA</div>
+      </div>
+      <div class="mapping-controls-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11.5px; font-weight:700; color:#00ff9d; text-transform:uppercase;">
+            📐 Mapeo Geométrico de Nueva Edificación
+          </span>
+          <button type="button" id="btnCancelMapping" class="hud-btn" style="padding:2px 7px; font-size:10px;">✕</button>
+        </div>
+        <div class="form-row">
+          <div class="calib-row">
+            <label><span>Ancho Mapeado (W)</span><span id="mapValW">110 m</span></label>
+            <input type="range" id="mapSliderW" min="40" max="360" value="110" />
+          </div>
+          <div class="calib-row">
+            <label><span>Fondo Mapeado (D)</span><span id="mapValD">85 m</span></label>
+            <input type="range" id="mapSliderD" min="40" max="360" value="85" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="calib-row">
+            <label><span>Altura 3D (H)</span><span id="mapValH">42 m</span></label>
+            <input type="range" id="mapSliderH" min="8" max="90" value="42" />
+          </div>
+          <div class="calib-row">
+            <label><span>Tipo de Esqueleto</span></label>
+            <select id="mapSelectRoof" class="form-select" style="padding:3px 6px; font-size:11px;">
+              <option value="gable">Nave a Dos Aguas</option>
+              <option value="pyramid">Techo Piramidal</option>
+              <option value="twin">Coliseo Doble Bóveda</option>
+              <option value="pond">Estanques Acuícolas</option>
+              <option value="tanks">Tanques Biofloc</option>
+              <option value="corral">Corrales Ganaderos</option>
+              <option value="greenhouse">Invernadero Túnel</option>
+              <option value="court">Cancha / Superficie</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:2px;">
+          <button type="button" id="btnConfirmMapping" class="hud-btn btn-green" style="width:100%; justify-content:center; padding:7px;">
+            ✅ Confirmar Mapeo y Crear Esqueleto 3D Aquí
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL FLOTANTE PARA VALIDAR O REUBICAR EDIFICACIÓN EN TIEMPO REAL -->
+    <aside id="calibrationDock" class="calibration-dock">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:11px; font-weight:700; color:#ff9100; text-transform:uppercase;">
+          🎯 Validar / Reubicar Posición Real
+        </span>
+        <button type="button" id="btnCloseCalibDock" class="hud-btn" style="padding:2px 6px; font-size:10px;">✕</button>
+      </div>
+      <div style="font-size:10px; color:#cbd5e1; line-height:1.25;">
+        Ajusta la posición o usa <strong>"Reubicar en la Mira (+)"</strong> para encajar el esqueleto 3D sobre la estructura real.
+      </div>
+      <button type="button" id="btnSnapBldToReticle" class="hud-btn btn-orange" style="justify-content:center; width:100%;">
+        📍 Traer Edificación al Centro de la Mira (+)
+      </button>
+      <div class="calib-row">
+        <label><span>Posición Este / Oeste (X)</span><span id="calValX">0</span></label>
+        <input type="range" id="calSliderX" min="-1800" max="1800" step="2" value="0" />
+      </div>
+      <div class="calib-row">
+        <label><span>Posición Norte / Sur (Y)</span><span id="calValY">0</span></label>
+        <input type="range" id="calSliderY" min="-1400" max="1400" step="2" value="0" />
+      </div>
+      <div class="form-row">
+        <div class="calib-row">
+          <label><span>Ancho (W)</span><span id="calValW">100</span></label>
+          <input type="range" id="calSliderW" min="30" max="420" step="2" value="100" />
+        </div>
+        <div class="calib-row">
+          <label><span>Fondo (D)</span><span id="calValD">100</span></label>
+          <input type="range" id="calSliderD" min="30" max="550" step="2" value="100" />
+        </div>
+      </div>
+      <div class="calib-row">
+        <label><span>Rotación / Orientación (°)</span><span id="calValRot">0°</span></label>
+        <input type="range" id="calSliderRot" min="-180" max="180" step="1" value="0" />
+      </div>
+      <div style="display:flex; gap:6px; margin-top:4px;">
+        <button type="button" id="btnValidatePositionOk" class="hud-btn btn-green" style="flex:1; justify-content:center;">
+          ✓ Validar Posición Real
+        </button>
+      </div>
+    </aside>
+
+    <!-- VISOR HOLOGRÁFICO AUTOMÁTICO EN TIEMPO REAL AL PASAR LA CÁMARA O DAR CLIC -->
     <aside id="reticlePhotoHud" class="reticle-photo-hud">
       <div class="reticle-hud-top">
         <span id="reticleLockTag" class="reticle-lock-tag">ENFOCADO EN MIRA</span>
-        <button id="btnToggleReticleHud" class="hud-btn" style="padding:1px 6px; font-size:10px;" title="Minimizar/Expandir visor de foto">_</button>
+        <div style="display:flex; gap:4px;">
+          <button id="btnToggleReticleHud" class="hud-btn" style="padding:1px 6px; font-size:10px;" title="Minimizar/Expandir visor de foto">_</button>
+          <button id="btnCloseFocusedHud" class="hud-btn" style="padding:1px 6px; font-size:10px;" title="Ocultar tarjeta">✕</button>
+        </div>
       </div>
       <div id="reticleHudBody">
         <div class="reticle-photo-frame">
@@ -1167,18 +1407,27 @@
           <button type="button" id="btnQuickEditDesc" class="hud-btn" style="justify-content:center; padding:4px 6px; font-size:10.5px;">
             ✎ Descripción
           </button>
+          <button type="button" id="btnQuickCalibrate" class="hud-btn btn-orange" style="grid-column: span 2; justify-content:center; padding:4px 6px; font-size:10.5px;">
+            🎯 Validar / Reubicar en Mapa o Cámara
+          </button>
         </div>
       </div>
     </aside>
 
-    <!-- Barra flotante de captura directa cuando la Cámara RA está encendida -->
+    <!-- Barra flotante de captura y validación cuando la Cámara RA está encendida -->
     <div id="arShutterBar" class="ar-shutter-bar">
       <span style="font-size:11px; color:#a5f3fc; font-weight:600;">Cámara RA Activa:</span>
+      <button type="button" id="btnValidateARHere" class="hud-btn btn-orange" title="Reubicar o validar la edificación enfocada según la cámara real">
+        🎯 Validar / Reubicar Aquí
+      </button>
+      <button type="button" id="btnScanNewAR" class="hud-btn btn-green" title="Mapear e identificar una nueva edificación con la cámara">
+        📐 Mapear Nueva Edificación
+      </button>
       <button type="button" id="btnSnapARPhoto" class="hud-btn btn-green">
-        📸 Capturar Foto para este Lugar
+        📸 Capturar Foto
       </button>
       <button type="button" id="btnHelpAR" class="hud-btn" style="padding:4px 8px;">
-        ¿Qué hace Cámara RA?
+        ?
       </button>
     </div>
 
@@ -1231,15 +1480,15 @@
           <span id="tourBtnLabel">Recorrido Guiado (22 Zonas)</span>
         </button>
 
-        <button id="btnQuickAdd" class="hud-btn btn-green" title="Crear nueva edificación o módulo en el punto actual">
+        <button id="btnQuickAdd" class="hud-btn btn-green" title="Mapear e identificar una nueva edificación con su esqueleto 3D">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          <span>+ Agregar Edificación</span>
+          <span id="btnQuickAddLabel">📐 Mapear Nueva Edificación</span>
         </button>
 
-        <button id="btnMoveBuildings" class="hud-btn btn-orange" title="Arrastrar edificaciones en el mapa">
+        <button id="btnMoveBuildings" class="hud-btn btn-orange" title="Validar o reubicar edificaciones arrastrándolas o con controles">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="5 9 2 12 5 15"></polyline>
             <polyline points="9 5 12 2 15 5"></polyline>
@@ -1248,7 +1497,7 @@
             <line x1="2" y1="12" x2="22" y2="12"></line>
             <line x1="12" y1="2" x2="12" y2="22"></line>
           </svg>
-          <span id="moveBtnLabel">Mover Bloques</span>
+          <span id="moveBtnLabel">🎯 Calibrar / Reubicar</span>
         </button>
 
         <button id="btnAllNamesModal" class="hud-btn" title="Directorio completo, renombrar, exportar o importar JSON">
@@ -1283,15 +1532,14 @@
       </div>
     </div>
 
-    <!-- Barra lateral izquierda (Zoom) -->
+    <!-- Barra lateral izquierda (Zoom interactivo con botones +/-, clic en barra y pellizco táctil) -->
     <div class="left-scale-bar">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a5f3fc" stroke-width="2">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-        <circle cx="12" cy="10" r="3"></circle>
-      </svg>
-      <div class="scale-track" title="Zoom / Altitud de Escaneo">
+      <button type="button" id="btnZoomIn" class="zoom-step-btn" title="Acercar Zoom (+)">+</button>
+      <div id="scaleTrackBar" class="scale-track" title="Haz clic para ajustar el Zoom">
         <div id="zoomFillBar" class="scale-fill"></div>
       </div>
+      <button type="button" id="btnZoomOut" class="zoom-step-btn" title="Alejar Zoom (-)">−</button>
+      <span id="zoomPctLabel" class="zoom-pct-label">105%</span>
     </div>
 
     <!-- Regla derecha + GPS -->
@@ -1447,6 +1695,7 @@
             <label class="form-label">Estado Operativo</label>
             <select id="inputBldStatus" class="form-select">
               <option value="Activo">Activo</option>
+              <option value="Validado en RA">Validado en RA</option>
               <option value="En Producción">En Producción</option>
               <option value="En Prácticas">En Prácticas</option>
               <option value="Monitoreo Hídrico">Monitoreo Hídrico</option>
@@ -1524,9 +1773,9 @@
         <button id="btnCloseArHelp" class="hud-btn" style="padding: 4px 8px;">✕</button>
       </div>
       <div class="modal-body" style="font-size:12.5px; line-height:1.5; color:#cbd5e1;">
-        <p><strong style="color:#00ff9d;">1. Superposición sobre el Mundo Real:</strong> Al activar <strong>"Activar Cámara RA"</strong>, la cámara trasera de tu teléfono se muestra en vivo y los esqueletos 3D holográficos se dibujan encima.</p>
-        <p><strong style="color:#00f0ff;">2. Escaneo Automático con Foto y Descripción:</strong> Al pasar la mira central (<strong>+</strong>) o la cámara por encima de cualquier edificación (Acuicultura, Ganadería, Campus), emerge instantáneamente la tarjeta con las fotos reales y su descripción en tiempo real.</p>
-        <p><strong style="color:#ff9100;">3. Agrega Tus Propias Fotos:</strong> Usa <strong>"+ Subir Foto"</strong> o <strong>"📸 Capturar Foto"</strong> para añadir imágenes tomadas por ti mismo.</p>
+        <p><strong style="color:#00ff9d;">1. Superposición Limpia sobre el Mundo Real:</strong> Los esqueletos 3D permanecen limpios sin saturar la pantalla de texto. Solo cuando das clic/picas un bloque o pasas la mira central (<strong>+</strong>) sobre la edificación, aparecen sus fotos y descripción.</p>
+        <p><strong style="color:#ff9100;">2. Validación y Reubicación en Vivo:</strong> Con la cámara activa puedes pulsar <strong>"🎯 Validar / Reubicar Aquí"</strong> para traer una edificación desfasada al punto exacto que estás enfocando o ajustar su orientación y dimensiones.</p>
+        <p><strong style="color:#00f0ff;">3. Mapeo de Nuevas Edificaciones:</strong> Usa <strong>"📐 Mapear Nueva Edificación"</strong> para encuadrar un edificio nuevo en la mira, definir su volumen y generar su esqueleto 3D al instante.</p>
       </div>
       <div class="modal-footer" style="justify-content:flex-end;">
         <button id="btnOkArHelp" class="hud-btn btn-green">Entendido</button>
@@ -1538,7 +1787,7 @@
   <div id="allBuildingsModal" class="modal-backdrop">
     <div class="modal-card" style="max-width: 680px;">
       <div class="modal-header">
-        <h2>Directorio General del Predio - SENA CBC (22 Instalaciones)</h2>
+        <h2>Directorio General del Predio - SENA CBC</h2>
         <button id="btnCloseAllModal" class="hud-btn" style="padding: 4px 8px;">✕</button>
       </div>
       <div id="allBuildingsList" class="modal-body"></div>
@@ -1550,7 +1799,7 @@
           <input id="fileImportJSON" type="file" accept=".json" style="display:none;" />
         </div>
         <div style="display:flex; gap:8px;">
-          <button id="btnAddNewBuildingModal" class="hud-btn btn-green">+ Agregar Edificación</button>
+          <button id="btnAddNewBuildingModal" class="hud-btn btn-green">+ Mapear Nueva Edificación</button>
           <button id="btnDoneAllModal" class="hud-btn active">Cerrar</button>
         </div>
       </div>
@@ -1574,14 +1823,6 @@
       agroindustria:{ name: 'SECTOR 5: AGROINDUSTRIA Y VIVEROS', x: -720, y: 520,  zoom: 0.82 }
     };
 
-    /* ==========================================================================
-       BASE DE DATOS 100% CORREGIDA (ORDEN LÓGICO GEOGRÁFICO)
-       - Campus Central (Centro)
-       - Acuicultura y Piscicultura (Al norte / este de campus)
-       - Ganadería y Especies Menores (Al oeste de acuicultura/campus)
-       - Río Cesar y Ronda Hídrica (Al extremo este)
-       - Agroindustria y Viveros (Al sur)
-       ========================================================================== */
     const INITIAL_BUILDINGS = [
       // --- SECTOR 1: CAMPUS CENTRAL Y ACADÉMICO ---
       {
@@ -1728,7 +1969,7 @@
         labelOffset: { dx: 0, dy: -65 }, alwaysDetails: false
       },
 
-      // --- SECTOR 2: ESTACIÓN DE ACUICULTURA Y PISCICULTURA (Ubicado correctamente al norte/este del campus) ---
+      // --- SECTOR 2: ESTACIÓN DE ACUICULTURA Y PISCICULTURA ---
       {
         id: 'estanques-piscicultura',
         sector: 'acuicultura',
@@ -1769,7 +2010,7 @@
         labelOffset: { dx: 20, dy: -75 }, alwaysDetails: false
       },
 
-      // --- SECTOR 3: UNIDAD DE GANADERÍA Y ESPECIES MENORES (Ubicado correctamente después de acuicultura / al oeste) ---
+      // --- SECTOR 3: UNIDAD DE GANADERÍA Y ESPECIES MENORES ---
       {
         id: 'corrales-ordeno',
         sector: 'ganaderia',
@@ -1810,7 +2051,7 @@
         labelOffset: { dx: 25, dy: -75 }, alwaysDetails: false
       },
 
-      // --- SECTOR 4: RÍO CESAR / HUMEDAL Y RONDA HÍDRICA (Extremo este) ---
+      // --- SECTOR 4: RÍO CESAR / HUMEDAL Y RONDA HÍDRICA ---
       {
         id: 'cauce-rio-cbc',
         sector: 'rio',
@@ -1851,7 +2092,7 @@
         labelOffset: { dx: -20, dy: -75 }, alwaysDetails: false
       },
 
-      // --- SECTOR 5: VIVEROS, CULTIVOS Y AGROINDUSTRIA (Al sur) ---
+      // --- SECTOR 5: VIVEROS, CULTIVOS Y AGROINDUSTRIA ---
       {
         id: 'invernaderos-vivero',
         sector: 'agroindustria',
@@ -1925,6 +2166,7 @@
       editingId: null,
       photoIndexMap: {},
       reticleHudMinimized: false,
+      mappingMode: false,
       camera: {
         x: 105,
         y: 305,
@@ -1940,6 +2182,8 @@
         lastX: 0,
         lastY: 0,
         movedDist: 0,
+        pinchStartDist: 0,
+        pinchStartZoom: 1,
         keys: { up: false, down: false, left: false, right: false }
       },
       arCameraActive: false,
@@ -2283,7 +2527,7 @@
 
       APP.buildings.forEach(b => {
         const card = document.createElement('div');
-        card.className = 'building-callout' + (b.alwaysDetails ? ' always-details' : '');
+        card.className = 'building-callout';
         card.style.setProperty('--card-color', b.color);
         card.dataset.id = b.id;
 
@@ -2493,7 +2737,7 @@
       });
 
       ctx.strokeStyle = b.color;
-      ctx.lineWidth = isSelected ? 2.4 : 1.55;
+      ctx.lineWidth = isSelected ? 2.6 : 1.55;
       ctx.shadowColor = b.color;
       ctx.shadowBlur = isSelected ? 14 : 6;
 
@@ -2673,16 +2917,25 @@
 
       ctx.save();
 
+      // LIMPIEZA VISUAL: Solo se dibuja la etiqueta flotante de la edificación clicada o enfocada en la mira
       APP.buildings.forEach(b => {
         const roofPt = APP.anchorCache.get(b.id);
         const cardEl = APP.labelNodes.get(b.id);
         if (!roofPt || !cardEl) return;
 
+        if (b.id !== APP.selectedId) {
+          cardEl.classList.remove('is-active');
+          cardEl.style.display = 'none';
+          return;
+        }
+
         if (roofPt.x < -120 || roofPt.x > cw + 120 || roofPt.y < -120 || roofPt.y > ch + 120) {
           cardEl.style.display = 'none';
           return;
         }
+
         cardEl.style.display = 'flex';
+        cardEl.classList.add('is-active');
 
         const scaleFactor = Math.min(1.1, Math.max(0.55, APP.camera.zoom));
         const offX = (b.labelOffset ? b.labelOffset.dx : 0) * scaleFactor;
@@ -2692,14 +2945,9 @@
         const cardY = Math.max(108, Math.min(ch - 85, roofPt.y + offY));
 
         cardEl.style.transform = `translate3d(${cardX}px, ${cardY}px, 0) translate(-50%, -100%)`;
-        if (b.id === APP.selectedId) {
-          cardEl.classList.add('is-active');
-        } else {
-          cardEl.classList.remove('is-active');
-        }
 
         ctx.strokeStyle = b.color;
-        ctx.lineWidth = b.id === APP.selectedId ? 2.1 : 1.25;
+        ctx.lineWidth = 2.1;
         ctx.shadowColor = b.color;
         ctx.shadowBlur = 5;
         ctx.beginPath();
@@ -2709,7 +2957,7 @@
 
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(roofPt.x, roofPt.y, 2.6, 0, Math.PI * 2);
+        ctx.arc(roofPt.x, roofPt.y, 3, 0, Math.PI * 2);
         ctx.fill();
       });
 
@@ -2826,7 +3074,7 @@
       APP.buildings.forEach(b => {
         const dx = worldPt.x - b.x;
         const dy = worldPt.y - b.y;
-        const radius = Math.max(b.w, b.d) * 0.68;
+        const radius = Math.max(b.w, b.d) * 0.72;
         const dist = Math.hypot(dx, dy);
         if (dist <= radius && dist < bestDist) {
           bestDist = dist;
@@ -2836,7 +3084,9 @@
       return best;
     }
 
+    // Escaneo automático solo cuando la mira (+) está sobre una edificación; si se aleja a campo abierto, limpia las tarjetas
     function autoScanCenterReticle() {
+      if (APP.interaction.moveBuildingsMode || APP.mappingMode) return;
       const cx = window.innerWidth / 2;
       const cy = window.innerHeight / 2;
       const worldPt = screenToWorld(cx, cy);
@@ -2844,23 +3094,35 @@
       let minDist = Infinity;
 
       APP.buildings.forEach(b => {
+        const hitRadius = Math.max(b.w, b.d) * 0.78;
         const d = Math.hypot(worldPt.x - b.x, worldPt.y - b.y);
-        if (d < minDist) {
+        if (d <= hitRadius && d < minDist) {
           minDist = d;
           closest = b;
         }
       });
 
-      if (closest && minDist < 460 && closest.id !== APP.selectedId) {
-        selectBuilding(closest.id, false);
+      if (closest) {
+        if (closest.id !== APP.selectedId) {
+          selectBuilding(closest.id, false);
+        }
+      } else if (APP.selectedId !== null) {
+        APP.selectedId = null;
+        updateInspectorCard();
       }
     }
 
     function selectBuilding(id, smoothCenter = false) {
+      if (!id) {
+        APP.selectedId = null;
+        updateInspectorCard();
+        return;
+      }
       const b = APP.buildings.find(item => item.id === id);
       if (!b) return;
       APP.selectedId = id;
       updateInspectorCard();
+      syncCalibrationSliders();
 
       if (smoothCenter) {
         animateCameraTo(b.x, b.y, Math.max(APP.camera.zoom, 0.85));
@@ -2884,8 +3146,17 @@
         if (firstInSec) {
           APP.selectedId = firstInSec.id;
           updateInspectorCard();
+          syncCalibrationSliders();
         }
+      } else {
+        APP.selectedId = null;
+        updateInspectorCard();
       }
+    }
+
+    function setCameraZoom(newZoom) {
+      APP.camera.zoom = Math.max(0.28, Math.min(2.4, newZoom));
+      updateZoomBarUI();
     }
 
     function animateCameraTo(targetX, targetY, targetZoom = APP.camera.zoom) {
@@ -2908,14 +3179,25 @@
     }
 
     function updateZoomBarUI() {
-      const pct = ((APP.camera.zoom - 0.28) / (2.2 - 0.28)) * 100;
-      document.getElementById('zoomFillBar').style.height = `${Math.max(10, Math.min(96, pct))}%`;
+      const pct = ((APP.camera.zoom - 0.28) / (2.4 - 0.28)) * 100;
+      document.getElementById('zoomFillBar').style.height = `${Math.max(8, Math.min(98, pct))}%`;
+      const lbl = document.getElementById('zoomPctLabel');
+      if (lbl) lbl.textContent = `${Math.round(APP.camera.zoom * 100)}%`;
     }
 
     function updateInspectorCard() {
-      const b = APP.buildings.find(item => item.id === APP.selectedId);
-      if (!b) return;
+      const retHud = document.getElementById('reticlePhotoHud');
       const card = document.getElementById('scannerInspector');
+      const b = APP.buildings.find(item => item.id === APP.selectedId);
+
+      if (!b) {
+        retHud.classList.add('is-hidden');
+        card.classList.add('is-hidden');
+        return;
+      }
+
+      retHud.classList.remove('is-hidden');
+      card.classList.remove('is-hidden');
       card.style.setProperty('--active-color', b.color);
 
       const sectorTitles = {
@@ -2936,7 +3218,6 @@
       document.getElementById('inspStatus').style.color = b.color;
       document.getElementById('inspPhotoCount').textContent = `${photos.length} Foto(s)`;
 
-      const retHud = document.getElementById('reticlePhotoHud');
       retHud.style.setProperty('--focus-color', b.color);
       document.getElementById('reticleLockTag').textContent = APP.arCameraActive
         ? 'CÁMARA RA • ENFOCADO'
@@ -2951,6 +3232,74 @@
         const thumbImg = calloutEl.querySelector('.callout-thumb-img');
         if (thumbImg) thumbImg.src = photos[curIdx];
       }
+    }
+
+    function syncCalibrationSliders() {
+      const b = APP.buildings.find(item => item.id === APP.selectedId);
+      if (!b) return;
+      document.getElementById('calSliderX').value = Math.round(b.x);
+      document.getElementById('calValX').textContent = `${Math.round(b.x)} m`;
+      document.getElementById('calSliderY').value = Math.round(b.y);
+      document.getElementById('calValY').textContent = `${Math.round(b.y)} m`;
+      document.getElementById('calSliderW').value = Math.round(b.w);
+      document.getElementById('calValW').textContent = `${Math.round(b.w)} m`;
+      document.getElementById('calSliderD').value = Math.round(b.d);
+      document.getElementById('calValD').textContent = `${Math.round(b.d)} m`;
+      const deg = Math.round(((b.angle || 0) * 180) / Math.PI);
+      document.getElementById('calSliderRot').value = deg;
+      document.getElementById('calValRot').textContent = `${deg}°`;
+    }
+
+    function toggleCalibrationMode(forceState) {
+      const next = typeof forceState === 'boolean' ? forceState : !APP.interaction.moveBuildingsMode;
+      APP.interaction.moveBuildingsMode = next;
+      const btnMove = document.getElementById('btnMoveBuildings');
+      const dock = document.getElementById('calibrationDock');
+      btnMove.classList.toggle('active', next);
+      dock.classList.toggle('open', next);
+
+      document.getElementById('moveBtnLabel').textContent = next
+        ? 'Calibrando Posición'
+        : '🎯 Calibrar / Reubicar';
+
+      if (next) {
+        if (!APP.selectedId && APP.buildings.length > 0) {
+          selectBuilding(APP.buildings[0].id, false);
+        } else {
+          syncCalibrationSliders();
+        }
+        showToast('Modo Calibración: Arrastra el edificio o usa los controles para reubicarlo');
+      }
+    }
+
+    function toggleMappingScanner(forceState) {
+      const next = typeof forceState === 'boolean' ? forceState : !APP.mappingMode;
+      APP.mappingMode = next;
+      const overlay = document.getElementById('mappingScannerOverlay');
+      const btnAdd = document.getElementById('btnQuickAdd');
+      overlay.classList.toggle('active', next);
+      btnAdd.classList.toggle('active', next);
+
+      if (next) {
+        toggleCalibrationMode(false);
+        updateMappingPreviewBox();
+        showToast('Apunta la mira al lugar de la nueva edificación y ajusta sus dimensiones');
+      }
+    }
+
+    function updateMappingPreviewBox() {
+      const w = parseFloat(document.getElementById('mapSliderW').value) || 110;
+      const d = parseFloat(document.getElementById('mapSliderD').value) || 85;
+      const h = parseFloat(document.getElementById('mapSliderH').value) || 42;
+      document.getElementById('mapValW').textContent = `${w} m`;
+      document.getElementById('mapValD').textContent = `${d} m`;
+      document.getElementById('mapValH').textContent = `${h} m`;
+
+      const bbox = document.getElementById('mappingBbox');
+      const pxW = Math.max(80, Math.min(window.innerWidth * 0.8, w * APP.camera.zoom));
+      const pxH = Math.max(60, Math.min(window.innerHeight * 0.65, d * APP.camera.zoom * APP.camera.pitch));
+      bbox.style.width = `${pxW}px`;
+      bbox.style.height = `${pxH}px`;
     }
 
     function renderLoop(timestamp) {
@@ -3036,6 +3385,7 @@
           if (b) {
             b.x += dx / APP.camera.zoom;
             b.y += dy / (APP.camera.zoom * APP.camera.pitch);
+            syncCalibrationSliders();
           }
           return;
         }
@@ -3052,21 +3402,67 @@
       canvas.addEventListener('pointerup', (e) => {
         if (APP.interaction.draggingBuildingId) {
           saveBuildings();
-          showToast('Ubicación de la instalación guardada');
+          showToast('Ubicación de la edificación actualizada');
         } else if (APP.interaction.movedDist < 6) {
           const hit = findBuildingAtScreenPos(e.clientX, e.clientY);
-          if (hit) selectBuilding(hit.id, true);
+          if (hit) {
+            selectBuilding(hit.id, true);
+          } else {
+            // Al tocar un espacio vacío se ocultan las tarjetas para ver el mapa limpio
+            selectBuilding(null, false);
+          }
         }
         APP.interaction.isDraggingMap = false;
         APP.interaction.draggingBuildingId = null;
       });
 
+      // ZOOM CON RUEDA DEL RATÓN
       canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const factor = e.deltaY < 0 ? 1.12 : 0.89;
-        APP.camera.zoom = Math.max(0.28, Math.min(2.2, APP.camera.zoom * factor));
-        updateZoomBarUI();
+        setCameraZoom(APP.camera.zoom * factor);
+        if (APP.mappingMode) updateMappingPreviewBox();
       }, { passive: false });
+
+      // ZOOM TÁCTIL CON DOS DEDOS (PINCH TO ZOOM) EN TELÉFONOS
+      canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          APP.interaction.isDraggingMap = false;
+          APP.interaction.pinchStartDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          APP.interaction.pinchStartZoom = APP.camera.zoom;
+        }
+      }, { passive: true });
+
+      canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && APP.interaction.pinchStartDist > 10) {
+          const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const ratio = dist / APP.interaction.pinchStartDist;
+          setCameraZoom(APP.interaction.pinchStartZoom * ratio);
+          if (APP.mappingMode) updateMappingPreviewBox();
+        }
+      }, { passive: true });
+
+      // BOTONES DE ZOOM (+ / -) Y BARRA LATERAL
+      document.getElementById('btnZoomIn').addEventListener('click', () => {
+        setCameraZoom(APP.camera.zoom * 1.18);
+        if (APP.mappingMode) updateMappingPreviewBox();
+      });
+      document.getElementById('btnZoomOut').addEventListener('click', () => {
+        setCameraZoom(APP.camera.zoom * 0.84);
+        if (APP.mappingMode) updateMappingPreviewBox();
+      });
+      document.getElementById('scaleTrackBar').addEventListener('click', (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const clickRatio = 1 - (e.clientY - rect.top) / rect.height;
+        setCameraZoom(0.28 + clickRatio * (2.4 - 0.28));
+        if (APP.mappingMode) updateMappingPreviewBox();
+      });
 
       const jumpFromMinimap = (e) => {
         const rect = miniCanvas.getBoundingClientRect();
@@ -3111,7 +3507,7 @@
       });
 
       window.addEventListener('keydown', (e) => {
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') APP.interaction.keys.up = true;
         if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') APP.interaction.keys.down = true;
         if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') APP.interaction.keys.left = true;
@@ -3133,18 +3529,55 @@
         document.getElementById('viewTiltLabel').textContent = APP.camera.is3D ? 'Perspectiva 3D' : 'Plano 2D';
       });
 
-      const btnMove = document.getElementById('btnMoveBuildings');
-      btnMove.addEventListener('click', () => {
-        APP.interaction.moveBuildingsMode = !APP.interaction.moveBuildingsMode;
-        btnMove.classList.toggle('active', APP.interaction.moveBuildingsMode);
-        document.getElementById('moveBtnLabel').textContent = APP.interaction.moveBuildingsMode
-          ? 'Arrastrando Bloques'
-          : 'Mover Bloques';
-        showToast(
-          APP.interaction.moveBuildingsMode
-            ? 'Arrastra cualquier edificación o estanque para ajustar su posición'
-            : 'Posiciones bloqueadas'
-        );
+      // CONTROLES DE CALIBRACIÓN Y REUBICACIÓN EN TIEMPO REAL
+      document.getElementById('btnMoveBuildings').addEventListener('click', () => {
+        toggleCalibrationMode();
+      });
+      document.getElementById('btnQuickCalibrate').addEventListener('click', () => {
+        toggleCalibrationMode(true);
+      });
+      document.getElementById('btnValidateARHere').addEventListener('click', () => {
+        toggleCalibrationMode(true);
+      });
+      document.getElementById('btnCloseCalibDock').addEventListener('click', () => {
+        toggleCalibrationMode(false);
+      });
+
+      document.getElementById('btnSnapBldToReticle').addEventListener('click', () => {
+        const b = APP.buildings.find(item => item.id === APP.selectedId);
+        if (!b) return;
+        b.x = Math.round(APP.camera.x);
+        b.y = Math.round(APP.camera.y);
+        saveBuildings();
+        syncCalibrationSliders();
+        showToast(`"${b.name}" reubicado en el centro de la mira (+)`);
+      });
+
+      ['X', 'Y', 'W', 'D', 'Rot'].forEach(axis => {
+        document.getElementById(`calSlider${axis}`).addEventListener('input', (e) => {
+          const b = APP.buildings.find(item => item.id === APP.selectedId);
+          if (!b) return;
+          const val = parseFloat(e.target.value);
+          if (axis === 'X') b.x = val;
+          if (axis === 'Y') b.y = val;
+          if (axis === 'W') b.w = val;
+          if (axis === 'D') b.d = val;
+          if (axis === 'Rot') b.angle = (val * Math.PI) / 180;
+          syncCalibrationSliders();
+          saveBuildings();
+        });
+      });
+
+      document.getElementById('btnValidatePositionOk').addEventListener('click', () => {
+        const b = APP.buildings.find(item => item.id === APP.selectedId);
+        if (b) {
+          b.status = 'Validado en RA';
+          saveBuildings();
+          rebuildDOMCallouts();
+          updateInspectorCard();
+          showToast(`Posición real de "${b.name}" validada y guardada`);
+        }
+        toggleCalibrationMode(false);
       });
 
       const btnTour = document.getElementById('btnTour');
@@ -3186,14 +3619,14 @@
             shutterBar.classList.add('active');
             document.getElementById('cameraBtnLabel').textContent = 'Cámara RA Activa';
             updateInspectorCard();
-            showToast('Cámara RA Activa: Enfoca una edificación para ver su foto y descripción');
+            showToast('Cámara RA Activa: Enfoca una edificación para validarla, reubicarla o ver sus fotos');
           } catch (err) {
             APP.arCameraActive = true;
             btnCam.classList.add('active');
             shutterBar.classList.add('active');
             document.getElementById('cameraBtnLabel').textContent = 'Simulador RA Activo';
             updateInspectorCard();
-            showToast('Modo RA Activo: Enfoca cualquier bloque con la mira (+) para ver su foto');
+            showToast('Modo RA Activo: Usa los botones inferiores para validar posición o mapear nuevas edificaciones');
           }
         } else {
           if (APP.videoStream) {
@@ -3231,6 +3664,10 @@
         APP.reticleHudMinimized = !APP.reticleHudMinimized;
         document.getElementById('reticleHudBody').style.display = APP.reticleHudMinimized ? 'none' : 'block';
         document.getElementById('btnToggleReticleHud').textContent = APP.reticleHudMinimized ? '+' : '_';
+      });
+
+      document.getElementById('btnCloseFocusedHud').addEventListener('click', () => {
+        selectBuilding(null, false);
       });
 
       const quickPhotoInput = document.getElementById('quickPhotoInput');
@@ -3320,38 +3757,70 @@
         }
       });
 
-      const createNewBuildingHere = () => {
+      // ESCANEO Y MAPEO GEOMÉTRICO DE NUEVA EDIFICACIÓN
+      ['mapSliderW', 'mapSliderD', 'mapSliderH'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateMappingPreviewBox);
+      });
+
+      document.getElementById('btnQuickAdd').addEventListener('click', () => {
+        toggleMappingScanner();
+      });
+      document.getElementById('btnScanNewAR').addEventListener('click', () => {
+        toggleMappingScanner(true);
+      });
+      document.getElementById('btnCancelMapping').addEventListener('click', () => {
+        toggleMappingScanner(false);
+      });
+
+      const confirmAndCreateMappedBuilding = () => {
+        const w = parseFloat(document.getElementById('mapSliderW').value) || 110;
+        const d = parseFloat(document.getElementById('mapSliderD').value) || 85;
+        const h = parseFloat(document.getElementById('mapSliderH').value) || 42;
+        const roof = document.getElementById('mapSelectRoof').value || 'gable';
+        const approxArea = Math.round(w * d * 0.18).toLocaleString() + ' m²';
+
         const newId = 'zona-cbc-' + Date.now();
         const newBld = {
           id: newId,
           sector: APP.activeSector === 'all' ? 'campus' : APP.activeSector,
-          name: 'NUEVA INSTALACIÓN CBC',
+          name: 'NUEVA EDIFICACIÓN MAPEADA',
           icon: 'book',
           color: '#00ff9d',
-          area: '650 m²',
-          status: 'Activo',
+          area: approxArea,
+          status: 'Validado en RA',
           capacity: '80 personas',
-          desc: 'Nueva unidad registrada en el plano de Realidad Aumentada del SENA CBC.',
+          desc: 'Edificación identificada y mapeada directamente en el visor de Realidad Aumentada del SENA CBC.',
           x: Math.round(APP.camera.x),
           y: Math.round(APP.camera.y),
-          w: 92,
-          d: 74,
-          h: 40,
+          w: w,
+          d: d,
+          h: h,
           angle: -0.04,
-          roof: 'gable',
+          roof: roof,
           labelOffset: { dx: 0, dy: -75 },
           alwaysDetails: false
         };
+
+        // Si la cámara RA está encendida, toma automáticamente una captura de lo que está enfocando
+        const videoEl = document.getElementById('arCameraVideo');
+        if (APP.arCameraActive && APP.videoStream && videoEl.readyState >= 2) {
+          newBld.photos = [compressImageToDataURL(videoEl, 640, 380, 0.82)];
+        }
+
         APP.buildings.push(newBld);
         saveBuildings();
         rebuildDOMCallouts();
+        toggleMappingScanner(false);
         closeAllBuildingsModal();
         selectBuilding(newId, true);
         openEditModalFor(newId);
       };
 
-      document.getElementById('btnQuickAdd').addEventListener('click', createNewBuildingHere);
-      document.getElementById('btnAddNewBuildingModal').addEventListener('click', createNewBuildingHere);
+      document.getElementById('btnConfirmMapping').addEventListener('click', confirmAndCreateMappedBuilding);
+      document.getElementById('btnAddNewBuildingModal').addEventListener('click', () => {
+        closeAllBuildingsModal();
+        toggleMappingScanner(true);
+      });
 
       document.getElementById('btnOpenRenameCurrent').addEventListener('click', () => {
         openEditModalFor(APP.selectedId);
@@ -3556,6 +4025,7 @@
       buildFullEstateSatelliteCanvas();
       rebuildDOMCallouts();
       setupEvents();
+      updateZoomBarUI();
       requestAnimationFrame(renderLoop);
     });
   </script>
